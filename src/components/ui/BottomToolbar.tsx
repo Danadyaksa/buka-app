@@ -22,7 +22,7 @@ export const BottomToolbar: React.FC<BottomToolbarProps> = ({ onOpenTextModal })
     if (tab === 'text') {
       onOpenTextModal();
     } else {
-      setActiveTab(tab);
+      setActiveTab(activeTab === tab ? null : tab);
     }
   };
 

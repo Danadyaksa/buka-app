@@ -87,7 +87,7 @@ export interface FrameConfig {
   color: string;
 }
 
-export type ActiveToolTab = 'collage' | 'background' | 'sticker' | 'frame' | 'text';
+export type ActiveToolTab = 'collage' | 'background' | 'sticker' | 'frame' | 'text' | null;
 
 export type CollageSubMode = 'layout' | 'ratio' | 'outerMargin' | 'innerMargin' | 'cornerRadius' | 'shadow';
 

@@ -128,7 +128,7 @@ export const CollageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [textElements, setTextElements] = useState<TextOverlayItem[]>([]);
   const [stickerElements, setStickerElements] = useState<StickerOverlayItem[]>([]);
   const [frameConfig, setFrameConfigState] = useState<FrameConfig>(DEFAULT_FRAME);
-  const [activeTab, setActiveTab] = useState<ActiveToolTab>('collage');
+  const [activeTab, setActiveTab] = useState<ActiveToolTab>(null);
   const [activeCellId, setActiveCellId] = useState<string | null>(null);
 
   const historyRef = useRef<Snapshot[]>([]);
@@ -472,6 +472,7 @@ export const CollageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setTextElements([]);
     setStickerElements([]);
     setFrameConfigState(DEFAULT_FRAME);
+    setActiveTab(null);
     setActiveCellId(null);
   }, []);
 

@@ -15,7 +15,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
   onOpenSettings,
   onSave,
 }) => {
-  const { undo, redo, canUndo, canRedo } = useCollage();
+  const { undo, redo, canUndo, canRedo, activeCellId, setActiveCellId } = useCollage();
 
   return (
     <header className="px-4 py-3 bg-white border-b border-neutral-100 flex items-center justify-between shrink-0 select-none z-30">
@@ -59,7 +59,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
         </button>
       </div>
 
-      {/* Right: Settings ⚙️ and Pink Save Button (Video 00:49) */}
+      {/* Right: Settings ⚙️ and Pink Save/Done Button (Video sec 02) */}
       <div className="flex items-center gap-3">
         <button
           type="button"
@@ -70,13 +70,23 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
           <Settings className="w-5 h-5" />
         </button>
 
-        <button
-          type="button"
-          onClick={onSave}
-          className="px-5 py-1.5 rounded-full bg-[#ff2b6d] hover:bg-[#e0245e] active:scale-95 text-white text-xs font-bold shadow-sm shadow-pink-500/25 transition-all"
-        >
-          Save
-        </button>
+        {activeCellId ? (
+          <button
+            type="button"
+            onClick={() => setActiveCellId(null)}
+            className="px-5 py-1.5 rounded-full bg-[#ff2b6d] hover:bg-[#e0245e] active:scale-95 text-white text-xs font-bold shadow-sm shadow-pink-500/25 transition-all"
+          >
+            Done
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={onSave}
+            className="px-5 py-1.5 rounded-full bg-[#ff2b6d] hover:bg-[#e0245e] active:scale-95 text-white text-xs font-bold shadow-sm shadow-pink-500/25 transition-all"
+          >
+            Save
+          </button>
+        )}
       </div>
     </header>
   );

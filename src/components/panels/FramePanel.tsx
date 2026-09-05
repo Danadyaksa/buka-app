@@ -12,13 +12,26 @@ const FRAMES: { id: FrameType; name: string; desc: string }[] = [
   { id: 'vintage', name: 'Vintage', desc: 'Cream Parchment' },
 ];
 
+import { Check } from 'lucide-react';
+
 export const FramePanel: React.FC = () => {
-  const { frameConfig, setFrameConfig } = useCollage();
+  const { frameConfig, setFrameConfig, setActiveTab } = useCollage();
 
   return (
     <div className="w-full bg-white border-t border-neutral-200/80 p-3.5 flex flex-col gap-2.5 select-none">
-      <div className="text-xs font-bold uppercase tracking-wider text-neutral-400 text-center">
-        Collage Frames & Borders
+      <div className="flex items-center justify-between px-1">
+        <div className="w-7" />
+        <div className="text-xs font-bold uppercase tracking-wider text-neutral-600 text-center">
+          Collage Frames & Borders
+        </div>
+        <button
+          type="button"
+          onClick={() => setActiveTab(null)}
+          className="w-7 h-7 rounded-full bg-[#ff2b6d] text-white flex items-center justify-center shadow-sm hover:bg-[#e0245e] active:scale-95 transition-all"
+          title="Done"
+        >
+          <Check className="w-4 h-4 stroke-[3]" />
+        </button>
       </div>
 
       <div className="flex gap-2.5 overflow-x-auto no-scrollbar py-1">

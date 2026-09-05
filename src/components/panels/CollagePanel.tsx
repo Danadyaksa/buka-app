@@ -34,6 +34,7 @@ export const CollagePanel: React.FC = () => {
     photos,
     canvasConfig,
     setCanvasConfig,
+    setActiveTab,
   } = useCollage();
 
   const [controlMode, setControlMode] = useState<CollageControlMode>('layout');
@@ -48,25 +49,36 @@ export const CollagePanel: React.FC = () => {
         {/* --- 1. LAYOUT SELECTOR MODE --- */}
         {controlMode === 'layout' && (
           <div className="w-full flex flex-col gap-2">
-            {/* Category tabs */}
-            <div className="flex items-center justify-center gap-8 text-xs font-bold tracking-wider text-neutral-400 border-b border-neutral-100 pb-1.5">
+            {/* Category tabs & Confirm Checkmark */}
+            <div className="flex items-center justify-between px-2 border-b border-neutral-100 pb-1.5">
+              <div className="w-7" />
+              <div className="flex items-center justify-center gap-8 text-xs font-bold tracking-wider text-neutral-400">
+                <button
+                  type="button"
+                  onClick={() => setLayoutCategory('classic')}
+                  className={`uppercase transition-colors ${
+                    layoutCategory === 'classic' ? 'text-black font-extrabold' : 'hover:text-neutral-600'
+                  }`}
+                >
+                  CLASSIC
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLayoutCategory('stylish')}
+                  className={`uppercase transition-colors ${
+                    layoutCategory === 'stylish' ? 'text-black font-extrabold' : 'hover:text-neutral-600'
+                  }`}
+                >
+                  STYLISH
+                </button>
+              </div>
               <button
                 type="button"
-                onClick={() => setLayoutCategory('classic')}
-                className={`uppercase transition-colors ${
-                  layoutCategory === 'classic' ? 'text-black font-extrabold' : 'hover:text-neutral-600'
-                }`}
+                onClick={() => setActiveTab(null)}
+                className="w-7 h-7 rounded-full bg-[#ff2b6d] text-white flex items-center justify-center shadow-sm hover:bg-[#e0245e] active:scale-95 transition-all"
+                title="Done"
               >
-                CLASSIC
-              </button>
-              <button
-                type="button"
-                onClick={() => setLayoutCategory('stylish')}
-                className={`uppercase transition-colors ${
-                  layoutCategory === 'stylish' ? 'text-black font-extrabold' : 'hover:text-neutral-600'
-                }`}
-              >
-                STYLISH
+                <Check className="w-4 h-4 stroke-[3]" />
               </button>
             </div>
 
@@ -89,10 +101,20 @@ export const CollagePanel: React.FC = () => {
         {controlMode === 'ratio' && (
           <div className="w-full flex flex-col gap-3">
             <div className="flex items-center justify-between text-xs font-bold tracking-wider text-neutral-800 uppercase px-4">
-              <span>ASPECT RATIO: {canvasConfig.aspectRatioName}</span>
-              <span className="text-[#ff2b6d] font-mono">
-                1:{ (1 / canvasConfig.aspectRatio).toFixed(2) }
-              </span>
+              <div className="flex items-center gap-2">
+                <span>ASPECT RATIO: {canvasConfig.aspectRatioName}</span>
+                <span className="text-[#ff2b6d] font-mono">
+                  1:{ (1 / canvasConfig.aspectRatio).toFixed(2) }
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveTab(null)}
+                className="w-7 h-7 rounded-full bg-[#ff2b6d] text-white flex items-center justify-center shadow-sm hover:bg-[#e0245e] active:scale-95 transition-all"
+                title="Done"
+              >
+                <Check className="w-4 h-4 stroke-[3]" />
+              </button>
             </div>
 
             {/* Presets buttons */}
@@ -145,7 +167,7 @@ export const CollagePanel: React.FC = () => {
             max={40}
             valueDisplay={`${canvasConfig.outerMargin}px`}
             onChange={(val) => setCanvasConfig({ outerMargin: val })}
-            onConfirm={() => setControlMode('layout')}
+            onConfirm={() => setActiveTab(null)}
           />
         )}
 
@@ -158,7 +180,7 @@ export const CollagePanel: React.FC = () => {
             max={30}
             valueDisplay={`${canvasConfig.innerMargin}px`}
             onChange={(val) => setCanvasConfig({ innerMargin: val })}
-            onConfirm={() => setControlMode('layout')}
+            onConfirm={() => setActiveTab(null)}
           />
         )}
 
@@ -171,7 +193,7 @@ export const CollagePanel: React.FC = () => {
             max={40}
             valueDisplay={`${canvasConfig.cornerRadius}px`}
             onChange={(val) => setCanvasConfig({ cornerRadius: val })}
-            onConfirm={() => setControlMode('layout')}
+            onConfirm={() => setActiveTab(null)}
           />
         )}
 
@@ -184,7 +206,7 @@ export const CollagePanel: React.FC = () => {
             max={30}
             valueDisplay={`${canvasConfig.shadow}px`}
             onChange={(val) => setCanvasConfig({ shadow: val })}
-            onConfirm={() => setControlMode('layout')}
+            onConfirm={() => setActiveTab(null)}
           />
         )}
       </div>

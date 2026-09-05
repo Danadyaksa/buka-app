@@ -55,7 +55,7 @@ export const PhotoCell: React.FC<PhotoCellProps> = ({
   onSelect,
   onSwap,
 }) => {
-  const { updatePhotoTransform, replaceCellPhoto } = useCollage();
+  const { updatePhotoTransform, replaceCellPhoto, activeCellId } = useCollage();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const gestureContainerRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -353,6 +353,9 @@ export const PhotoCell: React.FC<PhotoCellProps> = ({
     replaceCellPhoto(cell.id, newPhoto);
   };
 
+  const isAnyCellSelected = activeCellId !== null;
+  const isOtherCellSelected = isAnyCellSelected && !isSelected;
+
   return (
     <div
       style={{
@@ -364,6 +367,7 @@ export const PhotoCell: React.FC<PhotoCellProps> = ({
         padding: `${innerMarginPx / 2}px`,
         clipPath: cell.clipPath,
         boxSizing: 'border-box',
+        zIndex: isSelected ? 20 : 10,
       }}
       className="select-none"
     >
@@ -373,7 +377,10 @@ export const PhotoCell: React.FC<PhotoCellProps> = ({
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        onClick={onSelect}
+        onClick={(e) => {
+          e.stopPropagation();
+          onSelect();
+        }}
         style={{
           borderRadius: `${cornerRadius}px`,
           boxShadow:
@@ -381,10 +388,21 @@ export const PhotoCell: React.FC<PhotoCellProps> = ({
               ? `0 ${shadow * 0.4}px ${shadow * 1.2}px rgba(0,0,0,${Math.min(0.5, shadow * 0.02 + 0.15)})`
               : 'none',
         }}
-        className={`relative w-full h-full overflow-hidden select-none touch-none bg-neutral-100 transition-shadow ${
-          isSelected ? 'ring-2 ring-[#ff2b6d] ring-offset-1 z-10' : ''
+        className={`relative w-full h-full overflow-hidden select-none touch-none bg-neutral-100 transition-all duration-200 ${
+          isSelected
+            ? 'z-20 opacity-100 shadow-lg'
+            : isOtherCellSelected
+            ? 'opacity-35 grayscale-[20%] hover:opacity-60 cursor-pointer'
+            : 'opacity-100'
         } ${isDraggingOver ? 'ring-4 ring-pink-400 bg-pink-50' : ''}`}
       >
+        {/* Crisp Pink Selection Outline Matching Video */}
+        {isSelected && (
+          <div
+            style={{ borderRadius: `${cornerRadius}px` }}
+            className="absolute inset-0 pointer-events-none border-[2.5px] border-[#ff2b6d] z-30"
+          />
+        )}
         {photo ? (
           <div
             ref={gestureContainerRef}

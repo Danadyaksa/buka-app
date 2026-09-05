@@ -300,6 +300,7 @@ export const CollageCanvas: React.FC<CollageCanvasProps> = ({ onEditText }) => {
   return (
     <div
       ref={containerRef}
+      onClick={() => setActiveCellId(null)}
       className="relative w-full h-full min-h-0 flex-1 flex items-center justify-center p-2 sm:p-4 overflow-hidden select-none"
     >
       {/* Outer Canvas Box Container with Computed Pixel Dimensions */}

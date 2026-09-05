@@ -32,49 +32,62 @@ const PATTERNS = [
   { id: 'terrazzo', name: 'Terrazzo' },
 ];
 
+import { Check } from 'lucide-react';
+
 export const BackgroundPanel: React.FC = () => {
-  const { backgroundConfig, setBackgroundConfig, photos } = useCollage();
+  const { backgroundConfig, setBackgroundConfig, photos, setActiveTab } = useCollage();
   const [activeSubTab, setActiveSubTab] = useState<'color' | 'gradient' | 'pattern' | 'blur'>('color');
 
   return (
     <div className="w-full bg-white border-t border-neutral-200/80 p-3 flex flex-col gap-3 select-none">
-      {/* Category selector */}
-      <div className="flex items-center justify-center gap-6 text-xs font-bold tracking-wider text-neutral-400 border-b border-neutral-100 pb-2">
+      {/* Category selector & Confirm Checkmark */}
+      <div className="flex items-center justify-between border-b border-neutral-100 pb-2 px-1">
+        <div className="w-7" />
+        <div className="flex items-center justify-center gap-6 text-xs font-bold tracking-wider text-neutral-400">
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('color')}
+            className={`uppercase transition-colors ${
+              activeSubTab === 'color' ? 'text-black font-extrabold' : 'hover:text-neutral-600'
+            }`}
+          >
+            Color
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('gradient')}
+            className={`uppercase transition-colors ${
+              activeSubTab === 'gradient' ? 'text-black font-extrabold' : 'hover:text-neutral-600'
+            }`}
+          >
+            Gradient
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('pattern')}
+            className={`uppercase transition-colors ${
+              activeSubTab === 'pattern' ? 'text-black font-extrabold' : 'hover:text-neutral-600'
+            }`}
+          >
+            Pattern
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('blur')}
+            className={`uppercase transition-colors ${
+              activeSubTab === 'blur' ? 'text-black font-extrabold' : 'hover:text-neutral-600'
+            }`}
+          >
+            Photo Blur
+          </button>
+        </div>
         <button
           type="button"
-          onClick={() => setActiveSubTab('color')}
-          className={`uppercase transition-colors ${
-            activeSubTab === 'color' ? 'text-black font-extrabold' : 'hover:text-neutral-600'
-          }`}
+          onClick={() => setActiveTab(null)}
+          className="w-7 h-7 rounded-full bg-[#ff2b6d] text-white flex items-center justify-center shadow-sm hover:bg-[#e0245e] active:scale-95 transition-all"
+          title="Done"
         >
-          Color
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('gradient')}
-          className={`uppercase transition-colors ${
-            activeSubTab === 'gradient' ? 'text-black font-extrabold' : 'hover:text-neutral-600'
-          }`}
-        >
-          Gradient
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('pattern')}
-          className={`uppercase transition-colors ${
-            activeSubTab === 'pattern' ? 'text-black font-extrabold' : 'hover:text-neutral-600'
-          }`}
-        >
-          Pattern
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('blur')}
-          className={`uppercase transition-colors ${
-            activeSubTab === 'blur' ? 'text-black font-extrabold' : 'hover:text-neutral-600'
-          }`}
-        >
-          Photo Blur
+          <Check className="w-4 h-4 stroke-[3]" />
         </button>
       </div>
 

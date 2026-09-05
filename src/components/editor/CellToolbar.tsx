@@ -189,14 +189,14 @@ export const CellToolbar: React.FC = () => {
           <span className="hidden sm:inline text-xs font-semibold">Delete</span>
         </button>
 
-        {/* Dismiss Close */}
+        {/* Confirm Done Checkmark */}
         <button
           type="button"
           onClick={() => setActiveCellId(null)}
-          className="p-1.5 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 rounded-full transition-colors ml-1"
-          title="Close Toolbar"
+          className="w-7 h-7 rounded-full bg-[#ff2b6d] text-white flex items-center justify-center shadow-sm hover:bg-[#e0245e] active:scale-95 transition-all ml-1"
+          title="Done"
         >
-          <X className="w-4 h-4" />
+          <Check className="w-4 h-4 stroke-[3]" />
         </button>
       </div>
     </div>
