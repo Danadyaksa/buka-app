@@ -72,7 +72,7 @@ export const GridDividerHandle: React.FC<GridDividerHandleProps> = ({
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
-      className="z-30 cursor-grab active:cursor-grabbing touch-none select-none p-2.5 -m-2.5"
+      className="z-30 cursor-grab active:cursor-grabbing touch-none select-none w-10 h-10 flex items-center justify-center"
       title="Drag to resize grid"
     >
       <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white text-[#ff2b6d] border border-neutral-300 shadow-md shadow-black/20 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform pointer-events-none">
