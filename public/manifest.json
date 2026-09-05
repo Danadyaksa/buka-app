@@ -1,6 +1,6 @@
 {
-  "name": "Buka Collage - Photo Collage Maker",
-  "short_name": "Buka Collage",
+  "name": "Buka app",
+  "short_name": "Buka app",
   "description": "Create and customize high-resolution photo collages with classic & stylish layouts, text, and frames.",
   "start_url": "/",
   "display": "standalone",
