@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useCallback, useRef } from 
 import {
   PhotoItem,
   CollageLayout,
+  CellLayout,
   CanvasConfig,
   BackgroundConfig,
   TextOverlayItem,
@@ -26,12 +27,12 @@ const DEFAULT_TRANSFORM: PhotoTransform = {
 };
 
 const DEFAULT_CANVAS_CONFIG: CanvasConfig = {
-  aspectRatio: 1,
-  aspectRatioName: '1:1',
-  outerMargin: 12,
-  innerMargin: 8,
-  cornerRadius: 8,
-  shadow: 10,
+  aspectRatio: 4 / 5,
+  aspectRatioName: '4:5',
+  outerMargin: 0,
+  innerMargin: 0,
+  cornerRadius: 0,
+  shadow: 0,
 };
 
 const DEFAULT_BACKGROUND: BackgroundConfig = {
@@ -70,6 +71,11 @@ interface CollageContextType {
   activeCellId: string | null;
   canUndo: boolean;
 
+  uploadedPhotos: PhotoItem[];
+  addUploadedPhotos: (items: PhotoItem[]) => void;
+  customCells: CellLayout[] | null;
+  setCustomCells: (cells: CellLayout[] | null) => void;
+
   // Actions
   setPhotos: (photos: PhotoItem[]) => void;
   addPhoto: (photo: PhotoItem) => void;
@@ -100,10 +106,12 @@ const CollageContext = createContext<CollageContextType | undefined>(undefined);
 export const ALL_LAYOUTS: CollageLayout[] = [...CLASSIC_LAYOUTS, ...STYLISH_LAYOUTS];
 
 export const CollageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [uploadedPhotos, setUploadedPhotos] = useState<PhotoItem[]>([]);
   const [photos, setPhotosState] = useState<PhotoItem[]>([]);
   const [selectedLayout, setSelectedLayoutState] = useState<CollageLayout>(
     CLASSIC_LAYOUTS.find((l) => l.id === 'classic-3-rows') || CLASSIC_LAYOUTS[0]
   );
+  const [customCells, setCustomCells] = useState<CellLayout[] | null>(null);
   const [cellAssignments, setCellAssignments] = useState<Record<string, string>>({});
   const [photoTransforms, setPhotoTransforms] = useState<Record<string, PhotoTransform>>({});
   const [canvasConfig, setCanvasConfigState] = useState<CanvasConfig>(DEFAULT_CANVAS_CONFIG);
@@ -402,11 +410,23 @@ export const CollageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setActiveCellId(null);
   }, []);
 
+  const addUploadedPhotos = useCallback((items: PhotoItem[]) => {
+    setUploadedPhotos((prev) => {
+      const existingIds = new Set(prev.map((p) => p.id));
+      const newItems = items.filter((p) => !existingIds.has(p.id));
+      return [...newItems, ...prev];
+    });
+  }, []);
+
   return (
     <CollageContext.Provider
       value={{
         photos,
+        uploadedPhotos,
+        addUploadedPhotos,
         selectedLayout,
+        customCells,
+        setCustomCells,
         cellAssignments,
         photoTransforms,
         canvasConfig,

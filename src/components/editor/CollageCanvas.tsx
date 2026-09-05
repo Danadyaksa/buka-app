@@ -4,10 +4,14 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useCollage } from '@/context/CollageContext';
 import { PhotoCell } from '@/components/editor/PhotoCell';
 import { TextOverlay } from '@/components/editor/TextOverlay';
+import { GridDividerHandle } from '@/components/editor/GridDividerHandle';
+import { CellLayout } from '@/types/collage';
 
 export const CollageCanvas: React.FC = () => {
   const {
     selectedLayout,
+    customCells,
+    setCustomCells,
     photos,
     cellAssignments,
     photoTransforms,
@@ -22,7 +26,7 @@ export const CollageCanvas: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [canvasSize, setCanvasSize] = useState<{ width: number; height: number }>({
     width: 340,
-    height: 340,
+    height: 425,
   });
 
   // Calculate pixel-perfect dimensions to fill available screen area
@@ -32,12 +36,11 @@ export const CollageCanvas: React.FC = () => {
       const { clientWidth, clientHeight } = containerRef.current;
       if (clientWidth === 0 || clientHeight === 0) return;
 
-      // Leave padding around canvas (16px on mobile, 24px on desktop)
-      const padding = clientWidth < 640 ? 16 : 28;
+      const padding = clientWidth < 640 ? 12 : 24;
       const availW = Math.max(100, clientWidth - padding * 2);
       const availH = Math.max(100, clientHeight - padding * 2);
 
-      const targetRatio = canvasConfig.aspectRatio || 1; // width / height
+      const targetRatio = canvasConfig.aspectRatio || 0.8; // default 4:5
       const containerRatio = availW / availH;
 
       let finalW = availW;
@@ -64,6 +67,9 @@ export const CollageCanvas: React.FC = () => {
       window.removeEventListener('resize', updateSize);
     };
   }, [canvasConfig.aspectRatio]);
+
+  // Use customCells if available, otherwise selectedLayout.cells
+  const currentCells: CellLayout[] = customCells || selectedLayout.cells;
 
   // Background styling
   const getBackgroundStyle = (): React.CSSProperties => {
@@ -131,18 +137,175 @@ export const CollageCanvas: React.FC = () => {
     }
   };
 
+  // --- CALCULATE OUTER AND INNER MARGIN AREA ---
+  const outerMarginPx = canvasConfig.outerMargin || 0;
+  const innerMarginPx = canvasConfig.innerMargin || 0;
+
+  const innerAreaW = Math.max(10, canvasSize.width - outerMarginPx * 2);
+  const innerAreaH = Math.max(10, canvasSize.height - outerMarginPx * 2);
+
+  // --- GRID DIVIDER HANDLERS (Resize grid splits in real-time) ---
+  const handleDragRowDivider = (dividerIndex: number, newY: number) => {
+    if (selectedLayout.id === 'classic-3-rows' && currentCells.length === 3) {
+      const updated = [...currentCells];
+      if (dividerIndex === 1) {
+        // Divider between row 1 and row 2
+        const clampedY = Math.max(15, Math.min(newY, currentCells[2].y - 15));
+        updated[0] = { ...updated[0], height: clampedY };
+        updated[1] = {
+          ...updated[1],
+          y: clampedY,
+          height: currentCells[2].y - clampedY,
+        };
+      } else if (dividerIndex === 2) {
+        // Divider between row 2 and row 3
+        const clampedY = Math.max(currentCells[0].height + 15, Math.min(newY, 85));
+        updated[1] = {
+          ...updated[1],
+          height: clampedY - currentCells[1].y,
+        };
+        updated[2] = {
+          ...updated[2],
+          y: clampedY,
+          height: 100 - clampedY,
+        };
+      }
+      setCustomCells(updated);
+    } else if (selectedLayout.id === 'classic-3-1top-2bot' && currentCells.length === 3) {
+      const clampedY = Math.max(15, Math.min(newY, 85));
+      setCustomCells([
+        { ...currentCells[0], height: clampedY },
+        { ...currentCells[1], y: clampedY, height: 100 - clampedY },
+        { ...currentCells[2], y: clampedY, height: 100 - clampedY },
+      ]);
+    } else if (selectedLayout.id === 'classic-3-2top-1bot' && currentCells.length === 3) {
+      const clampedY = Math.max(15, Math.min(newY, 85));
+      setCustomCells([
+        { ...currentCells[0], height: clampedY },
+        { ...currentCells[1], height: clampedY },
+        { ...currentCells[2], y: clampedY, height: 100 - clampedY },
+      ]);
+    } else if (selectedLayout.id === 'classic-3-1left-2right' && currentCells.length === 3) {
+      const clampedY = Math.max(15, Math.min(newY, 85));
+      setCustomCells([
+        currentCells[0],
+        { ...currentCells[1], height: clampedY },
+        { ...currentCells[2], y: clampedY, height: 100 - clampedY },
+      ]);
+    } else if (selectedLayout.id === 'classic-3-2left-1right' && currentCells.length === 3) {
+      const clampedY = Math.max(15, Math.min(newY, 85));
+      setCustomCells([
+        { ...currentCells[0], height: clampedY },
+        { ...currentCells[1], y: clampedY, height: 100 - clampedY },
+        currentCells[2],
+      ]);
+    } else if (selectedLayout.id === 'classic-4-2x2' && currentCells.length === 4) {
+      const clampedY = Math.max(15, Math.min(newY, 85));
+      setCustomCells([
+        { ...currentCells[0], height: clampedY },
+        { ...currentCells[1], height: clampedY },
+        { ...currentCells[2], y: clampedY, height: 100 - clampedY },
+        { ...currentCells[3], y: clampedY, height: 100 - clampedY },
+      ]);
+    } else if (
+      (selectedLayout.id.includes('classic-2-h') || currentCells.length === 2) &&
+      currentCells[0].width === 100
+    ) {
+      // 2 Rows
+      const clampedY = Math.max(15, Math.min(newY, 85));
+      setCustomCells([
+        { ...currentCells[0], height: clampedY },
+        { ...currentCells[1], y: clampedY, height: 100 - clampedY },
+      ]);
+    }
+  };
+
+  const handleDragColDivider = (dividerIndex: number, newX: number) => {
+    if (selectedLayout.id === 'classic-3-cols' && currentCells.length === 3) {
+      const updated = [...currentCells];
+      if (dividerIndex === 1) {
+        const clampedX = Math.max(15, Math.min(newX, currentCells[2].x - 15));
+        updated[0] = { ...updated[0], width: clampedX };
+        updated[1] = {
+          ...updated[1],
+          x: clampedX,
+          width: currentCells[2].x - clampedX,
+        };
+      } else if (dividerIndex === 2) {
+        const clampedX = Math.max(currentCells[0].width + 15, Math.min(newX, 85));
+        updated[1] = {
+          ...updated[1],
+          width: clampedX - currentCells[1].x,
+        };
+        updated[2] = {
+          ...updated[2],
+          x: clampedX,
+          width: 100 - clampedX,
+        };
+      }
+      setCustomCells(updated);
+    } else if (selectedLayout.id === 'classic-3-1top-2bot' && currentCells.length === 3) {
+      const clampedX = Math.max(15, Math.min(newX, 85));
+      setCustomCells([
+        currentCells[0],
+        { ...currentCells[1], width: clampedX },
+        { ...currentCells[2], x: clampedX, width: 100 - clampedX },
+      ]);
+    } else if (selectedLayout.id === 'classic-3-2top-1bot' && currentCells.length === 3) {
+      const clampedX = Math.max(15, Math.min(newX, 85));
+      setCustomCells([
+        { ...currentCells[0], width: clampedX },
+        { ...currentCells[1], x: clampedX, width: 100 - clampedX },
+        currentCells[2],
+      ]);
+    } else if (selectedLayout.id === 'classic-3-1left-2right' && currentCells.length === 3) {
+      const clampedX = Math.max(15, Math.min(newX, 85));
+      setCustomCells([
+        { ...currentCells[0], width: clampedX },
+        { ...currentCells[1], x: clampedX, width: 100 - clampedX },
+        { ...currentCells[2], x: clampedX, width: 100 - clampedX },
+      ]);
+    } else if (selectedLayout.id === 'classic-3-2left-1right' && currentCells.length === 3) {
+      const clampedX = Math.max(15, Math.min(newX, 85));
+      setCustomCells([
+        { ...currentCells[0], width: clampedX },
+        { ...currentCells[1], width: clampedX },
+        { ...currentCells[2], x: clampedX, width: 100 - clampedX },
+      ]);
+    } else if (selectedLayout.id === 'classic-4-2x2' && currentCells.length === 4) {
+      const clampedX = Math.max(15, Math.min(newX, 85));
+      setCustomCells([
+        { ...currentCells[0], width: clampedX },
+        { ...currentCells[1], x: clampedX, width: 100 - clampedX },
+        { ...currentCells[2], width: clampedX },
+        { ...currentCells[3], x: clampedX, width: 100 - clampedX },
+      ]);
+    } else if (
+      (selectedLayout.id.includes('classic-2-v') || currentCells.length === 2) &&
+      currentCells[0].height === 100
+    ) {
+      // 2 Columns
+      const clampedX = Math.max(15, Math.min(newX, 85));
+      setCustomCells([
+        { ...currentCells[0], width: clampedX },
+        { ...currentCells[1], x: clampedX, width: 100 - clampedX },
+      ]);
+    }
+  };
+
   return (
     <div
       ref={containerRef}
       className="relative w-full h-full min-h-0 flex-1 flex items-center justify-center p-2 sm:p-4 overflow-hidden select-none"
     >
-      {/* Outer Aspect Ratio Box Container with Exact Computed Dimensions */}
+      {/* Outer Canvas Box Container with Computed Pixel Dimensions */}
       <div
         style={{
           width: `${canvasSize.width}px`,
           height: `${canvasSize.height}px`,
+          transition: 'width 0.15s ease-out, height 0.15s ease-out',
         }}
-        className={`relative transition-all duration-150 overflow-hidden flex items-center justify-center bg-white ${getFrameClasses()}`}
+        className={`relative overflow-hidden ${getFrameClasses()}`}
       >
         {/* Background layer */}
         <div
@@ -153,16 +316,24 @@ export const CollageCanvas: React.FC = () => {
         {/* Inner Cells Grid Layer with Outer & Inner Margin */}
         <div
           style={{
-            padding: `${canvasConfig.outerMargin}px`,
-            gap: `${canvasConfig.innerMargin}px`,
+            position: 'absolute',
+            left: `${outerMarginPx}px`,
+            top: `${outerMarginPx}px`,
+            width: `${innerAreaW}px`,
+            height: `${innerAreaH}px`,
           }}
           onClick={() => setActiveCellId(null)}
-          className="relative w-full h-full"
+          className="relative"
         >
-          {selectedLayout.cells.map((cell) => {
+          {currentCells.map((cell) => {
             const assignedPhotoId = cellAssignments[cell.id];
             const photo = photos.find((p) => p.id === assignedPhotoId);
             const transform = assignedPhotoId ? photoTransforms[assignedPhotoId] : undefined;
+
+            const cellLeft = (cell.x / 100) * innerAreaW;
+            const cellTop = (cell.y / 100) * innerAreaH;
+            const cellW = (cell.width / 100) * innerAreaW;
+            const cellH = (cell.height / 100) * innerAreaH;
 
             return (
               <PhotoCell
@@ -170,6 +341,11 @@ export const CollageCanvas: React.FC = () => {
                 cell={cell}
                 photo={photo}
                 transform={transform}
+                cellLeft={cellLeft}
+                cellTop={cellTop}
+                cellW={cellW}
+                cellH={cellH}
+                innerMarginPx={innerMarginPx}
                 cornerRadius={canvasConfig.cornerRadius}
                 shadow={canvasConfig.shadow}
                 isSelected={activeCellId === cell.id}
@@ -178,6 +354,156 @@ export const CollageCanvas: React.FC = () => {
               />
             );
           })}
+
+          {/* Interactive Grid Divider Handles (Video 01:08: Pill buttons with ↕ / ↔) */}
+          {selectedLayout.id === 'classic-3-rows' && currentCells.length === 3 && (
+            <>
+              <GridDividerHandle
+                type="horizontal"
+                position={{ x: 50, y: currentCells[0].height }}
+                onDrag={(pos) => handleDragRowDivider(1, pos.y)}
+                containerRect={{ width: innerAreaW, height: innerAreaH }}
+              />
+              <GridDividerHandle
+                type="horizontal"
+                position={{ x: 50, y: currentCells[2].y }}
+                onDrag={(pos) => handleDragRowDivider(2, pos.y)}
+                containerRect={{ width: innerAreaW, height: innerAreaH }}
+              />
+            </>
+          )}
+
+          {selectedLayout.id === 'classic-3-1top-2bot' && currentCells.length === 3 && (
+            <>
+              <GridDividerHandle
+                type="horizontal"
+                position={{ x: 50, y: currentCells[0].height }}
+                onDrag={(pos) => handleDragRowDivider(1, pos.y)}
+                containerRect={{ width: innerAreaW, height: innerAreaH }}
+              />
+              <GridDividerHandle
+                type="vertical"
+                position={{
+                  x: currentCells[1].width,
+                  y: currentCells[0].height + (100 - currentCells[0].height) / 2,
+                }}
+                onDrag={(pos) => handleDragColDivider(1, pos.x)}
+                containerRect={{ width: innerAreaW, height: innerAreaH }}
+              />
+            </>
+          )}
+
+          {selectedLayout.id === 'classic-3-2top-1bot' && currentCells.length === 3 && (
+            <>
+              <GridDividerHandle
+                type="horizontal"
+                position={{ x: 50, y: currentCells[0].height }}
+                onDrag={(pos) => handleDragRowDivider(1, pos.y)}
+                containerRect={{ width: innerAreaW, height: innerAreaH }}
+              />
+              <GridDividerHandle
+                type="vertical"
+                position={{
+                  x: currentCells[0].width,
+                  y: currentCells[0].height / 2,
+                }}
+                onDrag={(pos) => handleDragColDivider(1, pos.x)}
+                containerRect={{ width: innerAreaW, height: innerAreaH }}
+              />
+            </>
+          )}
+
+          {selectedLayout.id === 'classic-3-1left-2right' && currentCells.length === 3 && (
+            <>
+              <GridDividerHandle
+                type="vertical"
+                position={{ x: currentCells[0].width, y: 50 }}
+                onDrag={(pos) => handleDragColDivider(1, pos.x)}
+                containerRect={{ width: innerAreaW, height: innerAreaH }}
+              />
+              <GridDividerHandle
+                type="horizontal"
+                position={{
+                  x: currentCells[0].width + (100 - currentCells[0].width) / 2,
+                  y: currentCells[1].height,
+                }}
+                onDrag={(pos) => handleDragRowDivider(1, pos.y)}
+                containerRect={{ width: innerAreaW, height: innerAreaH }}
+              />
+            </>
+          )}
+
+          {selectedLayout.id === 'classic-3-2left-1right' && currentCells.length === 3 && (
+            <>
+              <GridDividerHandle
+                type="vertical"
+                position={{ x: currentCells[0].width, y: 50 }}
+                onDrag={(pos) => handleDragColDivider(1, pos.x)}
+                containerRect={{ width: innerAreaW, height: innerAreaH }}
+              />
+              <GridDividerHandle
+                type="horizontal"
+                position={{
+                  x: currentCells[0].width / 2,
+                  y: currentCells[0].height,
+                }}
+                onDrag={(pos) => handleDragRowDivider(1, pos.y)}
+                containerRect={{ width: innerAreaW, height: innerAreaH }}
+              />
+            </>
+          )}
+
+          {selectedLayout.id === 'classic-4-2x2' && currentCells.length === 4 && (
+            <>
+              <GridDividerHandle
+                type="horizontal"
+                position={{ x: 50, y: currentCells[0].height }}
+                onDrag={(pos) => handleDragRowDivider(1, pos.y)}
+                containerRect={{ width: innerAreaW, height: innerAreaH }}
+              />
+              <GridDividerHandle
+                type="vertical"
+                position={{ x: currentCells[0].width, y: 50 }}
+                onDrag={(pos) => handleDragColDivider(1, pos.x)}
+                containerRect={{ width: innerAreaW, height: innerAreaH }}
+              />
+            </>
+          )}
+
+          {selectedLayout.id === 'classic-3-cols' && currentCells.length === 3 && (
+            <>
+              <GridDividerHandle
+                type="vertical"
+                position={{ x: currentCells[0].width, y: 50 }}
+                onDrag={(pos) => handleDragColDivider(1, pos.x)}
+                containerRect={{ width: innerAreaW, height: innerAreaH }}
+              />
+              <GridDividerHandle
+                type="vertical"
+                position={{ x: currentCells[2].x, y: 50 }}
+                onDrag={(pos) => handleDragColDivider(2, pos.x)}
+                containerRect={{ width: innerAreaW, height: innerAreaH }}
+              />
+            </>
+          )}
+
+          {(selectedLayout.id.includes('classic-2-h') || (currentCells.length === 2 && currentCells[0].width === 100)) && (
+            <GridDividerHandle
+              type="horizontal"
+              position={{ x: 50, y: currentCells[0].height }}
+              onDrag={(pos) => handleDragRowDivider(1, pos.y)}
+              containerRect={{ width: innerAreaW, height: innerAreaH }}
+            />
+          )}
+
+          {(selectedLayout.id.includes('classic-2-v') || (currentCells.length === 2 && currentCells[0].height === 100)) && (
+            <GridDividerHandle
+              type="vertical"
+              position={{ x: currentCells[0].width, y: 50 }}
+              onDrag={(pos) => handleDragColDivider(1, pos.x)}
+              containerRect={{ width: innerAreaW, height: innerAreaH }}
+            />
+          )}
 
           {/* Text Overlays Layer */}
           <TextOverlay />

@@ -45,6 +45,7 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ onBack }) => {
       const blob = await renderCollageToBlob(
         {
           layout: collage.selectedLayout,
+          customCells: collage.customCells || undefined,
           photos: collage.photos,
           cellAssignments: collage.cellAssignments,
           photoTransforms: collage.photoTransforms,

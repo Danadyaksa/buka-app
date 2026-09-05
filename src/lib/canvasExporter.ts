@@ -1,7 +1,9 @@
 import {
   CollageLayout,
+  CellLayout,
   PhotoItem,
   PhotoTransform,
+  FilterType,
   CanvasConfig,
   BackgroundConfig,
   TextOverlayItem,
@@ -11,6 +13,7 @@ import {
 
 interface ExportRenderInput {
   layout: CollageLayout;
+  customCells?: CellLayout[];
   photos: PhotoItem[];
   cellAssignments: Record<string, string>;
   photoTransforms: Record<string, PhotoTransform>;
@@ -20,6 +23,25 @@ interface ExportRenderInput {
   stickerElements: StickerOverlayItem[];
   frameConfig: FrameConfig;
 }
+
+const getFilterStyle = (filter?: FilterType): string => {
+  switch (filter) {
+    case 'bw':
+      return 'grayscale(100%)';
+    case 'warm':
+      return 'sepia(30%) saturate(140%) hue-rotate(-10deg)';
+    case 'vintage':
+      return 'sepia(50%) contrast(115%) brightness(95%)';
+    case 'bright':
+      return 'brightness(120%) contrast(105%)';
+    case 'contrast':
+      return 'contrast(145%) saturate(110%)';
+    case 'sepia':
+      return 'sepia(85%)';
+    default:
+      return 'none';
+  }
+};
 
 // Helper: load image safely
 function loadImage(src: string): Promise<HTMLImageElement> {
@@ -67,6 +89,7 @@ export async function renderCollageToBlob(
 ): Promise<Blob> {
   const {
     layout,
+    customCells,
     photos,
     cellAssignments,
     photoTransforms,
@@ -111,10 +134,11 @@ export async function renderCollageToBlob(
 
   // --- 2. DRAW PHOTO CELLS ---
   const outerMarginPx = (canvasConfig.outerMargin || 0) * scaleFactor;
+  const innerMarginPx = (canvasConfig.innerMargin || 0) * scaleFactor;
   const cornerRadiusPx = (canvasConfig.cornerRadius || 0) * scaleFactor;
 
-  const innerAreaW = canvasW - outerMarginPx * 2;
-  const innerAreaH = canvasH - outerMarginPx * 2;
+  const innerAreaW = Math.max(10, canvasW - outerMarginPx * 2);
+  const innerAreaH = Math.max(10, canvasH - outerMarginPx * 2);
 
   // Pre-load all photo images
   const loadedImages: Record<string, HTMLImageElement> = {};
@@ -128,16 +152,40 @@ export async function renderCollageToBlob(
     })
   );
 
-  for (const cell of layout.cells) {
+  const cellsToRender = customCells && customCells.length > 0 ? customCells : layout.cells;
+
+  for (const cell of cellsToRender) {
     const assignedPhotoId = cellAssignments[cell.id];
     const photo = photos.find((p) => p.id === assignedPhotoId);
     const img = assignedPhotoId ? loadedImages[assignedPhotoId] : null;
     const transform = assignedPhotoId ? photoTransforms[assignedPhotoId] : null;
 
-    const cellLeft = outerMarginPx + (cell.x / 100) * innerAreaW;
-    const cellTop = outerMarginPx + (cell.y / 100) * innerAreaH;
-    const cellW = (cell.width / 100) * innerAreaW;
-    const cellH = (cell.height / 100) * innerAreaH;
+    const rawLeft = outerMarginPx + (cell.x / 100) * innerAreaW;
+    const rawTop = outerMarginPx + (cell.y / 100) * innerAreaH;
+    const rawW = (cell.width / 100) * innerAreaW;
+    const rawH = (cell.height / 100) * innerAreaH;
+
+    const cellLeft = rawLeft + innerMarginPx / 2;
+    const cellTop = rawTop + innerMarginPx / 2;
+    const cellW = Math.max(1, rawW - innerMarginPx);
+    const cellH = Math.max(1, rawH - innerMarginPx);
+
+    // Draw shadow if configured
+    if ((canvasConfig.shadow || 0) > 0) {
+      ctx.save();
+      ctx.shadowColor = `rgba(0, 0, 0, ${Math.min(0.5, (canvasConfig.shadow || 0) * 0.02 + 0.15)})`;
+      ctx.shadowBlur = (canvasConfig.shadow || 0) * 1.2 * scaleFactor;
+      ctx.shadowOffsetY = (canvasConfig.shadow || 0) * 0.4 * scaleFactor;
+      ctx.fillStyle = '#f1f5f9';
+      ctx.beginPath();
+      if (ctx.roundRect) {
+        ctx.roundRect(cellLeft, cellTop, cellW, cellH, cornerRadiusPx);
+      } else {
+        ctx.rect(cellLeft, cellTop, cellW, cellH);
+      }
+      ctx.fill();
+      ctx.restore();
+    }
 
     ctx.save();
 
@@ -182,6 +230,10 @@ export async function renderCollageToBlob(
       const panY = ((transform?.panY || 0) / 100) * cellH;
 
       ctx.translate(panX, panY);
+
+      if (transform?.filter && transform.filter !== 'none') {
+        ctx.filter = getFilterStyle(transform.filter);
+      }
 
       // Scale to cover cell
       const imgAspect = img.width / img.height;

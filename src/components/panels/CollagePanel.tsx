@@ -31,6 +31,7 @@ export const CollagePanel: React.FC = () => {
   const {
     selectedLayout,
     setLayout,
+    photos,
     canvasConfig,
     setCanvasConfig,
   } = useCollage();
@@ -75,6 +76,7 @@ export const CollagePanel: React.FC = () => {
                 <LayoutPreviewSvg
                   key={layout.id}
                   layout={layout}
+                  photos={photos}
                   isSelected={selectedLayout.id === layout.id}
                   onClick={() => setLayout(layout)}
                 />

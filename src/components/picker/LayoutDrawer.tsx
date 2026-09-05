@@ -70,6 +70,7 @@ export const LayoutDrawer: React.FC<LayoutDrawerProps> = ({ onNext }) => {
           <LayoutPreviewSvg
             key={layout.id}
             layout={layout}
+            photos={photos}
             isSelected={selectedLayout.id === layout.id}
             onClick={() => setLayout(layout)}
           />

@@ -16,9 +16,8 @@ export const MediaPicker: React.FC<MediaPickerProps> = ({
   onProceedToEditor,
   onOpenSettings,
 }) => {
-  const { photos, setPhotos } = useCollage();
+  const { photos, setPhotos, uploadedPhotos, addUploadedPhotos } = useCollage();
   const [activeTab, setActiveTab] = useState<'recents' | 'favorites'>('recents');
-  const [localPhotos, setLocalPhotos] = useState<PhotoItem[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filteredSamples = SAMPLE_PHOTOS.filter((p) => p.category === activeTab);
@@ -40,7 +39,7 @@ export const MediaPicker: React.FC<MediaPickerProps> = ({
       });
     });
 
-    setLocalPhotos((prev) => [...newItems, ...prev]);
+    addUploadedPhotos(newItems);
     // Also auto-select the newly uploaded photos
     setPhotos([...photos, ...newItems]);
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -118,7 +117,7 @@ export const MediaPicker: React.FC<MediaPickerProps> = ({
           />
 
           {/* User Uploaded Photos */}
-          {localPhotos.map((photo) => {
+          {uploadedPhotos.map((photo) => {
             const selected = isSelected(photo.id);
             return (
               <div
