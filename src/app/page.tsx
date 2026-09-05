@@ -10,7 +10,6 @@ import { BottomToolbar } from '@/components/ui/BottomToolbar';
 import { CollagePanel } from '@/components/panels/CollagePanel';
 import { BackgroundPanel } from '@/components/panels/BackgroundPanel';
 import { FramePanel } from '@/components/panels/FramePanel';
-import { StickerPanel } from '@/components/panels/StickerPanel';
 import { TextEditorModal } from '@/components/panels/TextEditorModal';
 import { ExportScreen } from '@/components/export/ExportScreen';
 import { ProjectsModal } from '@/components/projects/ProjectsModal';
@@ -109,7 +108,7 @@ function MainApp() {
             />
 
             {/* Canvas Area (Middle) */}
-            <div className="flex-1 relative overflow-hidden flex flex-col items-center justify-center">
+            <div className="flex-1 min-h-0 w-full relative overflow-hidden flex flex-col items-center justify-center">
               <CollageCanvas />
               <CellToolbar />
             </div>
@@ -119,7 +118,6 @@ function MainApp() {
               {collage.activeTab === 'collage' && <CollagePanel />}
               {collage.activeTab === 'background' && <BackgroundPanel />}
               {collage.activeTab === 'frame' && <FramePanel />}
-              {collage.activeTab === 'sticker' && <StickerPanel />}
             </div>
 
             {/* Bottom Navigation Toolbar */}

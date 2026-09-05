@@ -138,28 +138,28 @@ export const TextEditorModal: React.FC<TextEditorModalProps> = ({
             </div>
           )}
 
-          {/* 2. FONTS SELECTOR MODE (Video 01:46 - 02:22) */}
+          {/* 2. FONTS SELECTOR MODE (Video 01:46 - 02:22: Vertical Scroll List) */}
           {activeSubTab === 'fonts' && (
-            <div className="w-full max-w-lg flex flex-col gap-2">
-              <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider text-center">
-                Font Family
-              </div>
-              <div className="flex gap-2.5 overflow-x-auto no-scrollbar py-2">
-                {FONTS.map((f) => (
-                  <button
-                    key={f.id}
-                    type="button"
-                    onClick={() => setFont(f.family)}
-                    style={{ fontFamily: f.family }}
-                    className={`px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${
-                      font === f.family
-                        ? 'bg-[#ff2b6d] text-white shadow-md scale-105'
-                        : 'bg-white/10 text-neutral-200 hover:bg-white/20'
-                    }`}
-                  >
-                    {f.name}
-                  </button>
-                ))}
+            <div className="w-full max-w-sm flex flex-col items-center">
+              <div className="w-full h-56 overflow-y-auto no-scrollbar py-6 flex flex-col items-center gap-3 text-center scroll-smooth">
+                {FONTS.map((f) => {
+                  const isSelected = font === f.family;
+                  return (
+                    <button
+                      key={f.id}
+                      type="button"
+                      onClick={() => setFont(f.family)}
+                      style={{ fontFamily: f.family }}
+                      className={`w-full py-1.5 text-base sm:text-lg transition-all duration-150 ${
+                        isSelected
+                          ? 'text-[#ff2b6d] font-extrabold scale-110 tracking-wide'
+                          : 'text-neutral-400 hover:text-white font-normal'
+                      }`}
+                    >
+                      {f.name}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}

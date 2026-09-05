@@ -29,7 +29,6 @@ export const BottomToolbar: React.FC<BottomToolbarProps> = ({ onOpenTextModal })
   const tabs = [
     { id: 'collage' as ActiveToolTab, label: 'Collage', icon: LayoutGrid },
     { id: 'background' as ActiveToolTab, label: 'Background', icon: Paintbrush },
-    { id: 'sticker' as ActiveToolTab, label: 'Sticker', icon: Smile },
     { id: 'frame' as ActiveToolTab, label: 'Frame', icon: Square },
     { id: 'text' as ActiveToolTab, label: 'Text', icon: Type },
   ];

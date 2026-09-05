@@ -4,10 +4,10 @@ import React, { useState } from 'react';
 import {
   ChevronLeft,
   Download,
-  Share2,
   CheckCircle2,
-  MessageCircle,
   Loader2,
+  Sparkles,
+  FileImage,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useCollage } from '@/context/CollageContext';
@@ -19,29 +19,48 @@ interface ExportScreenProps {
   onBack: () => void;
 }
 
+type ResolutionTier = 1080 | 2048 | 3840;
+type FormatType = 'image/png' | 'image/jpeg';
+
 export const ExportScreen: React.FC<ExportScreenProps> = ({ onBack }) => {
   const collage = useCollage();
+  const [resolution, setResolution] = useState<ResolutionTier>(2048);
+  const [format, setFormat] = useState<FormatType>('image/png');
   const [isExporting, setIsExporting] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
-  // Trigger high-res rendering and direct download
-  const handleSave = async () => {
+  // Compute target dimensions for display
+  const targetW =
+    collage.canvasConfig.aspectRatio >= 1
+      ? resolution
+      : Math.round(resolution * collage.canvasConfig.aspectRatio);
+  const targetH =
+    collage.canvasConfig.aspectRatio >= 1
+      ? Math.round(resolution / collage.canvasConfig.aspectRatio)
+      : resolution;
+
+  const handleDownload = async () => {
     setIsExporting(true);
     try {
-      const blob = await renderCollageToBlob({
-        layout: collage.selectedLayout,
-        photos: collage.photos,
-        cellAssignments: collage.cellAssignments,
-        photoTransforms: collage.photoTransforms,
-        canvasConfig: collage.canvasConfig,
-        backgroundConfig: collage.backgroundConfig,
-        textElements: collage.textElements,
-        stickerElements: collage.stickerElements,
-        frameConfig: collage.frameConfig,
-      });
+      const blob = await renderCollageToBlob(
+        {
+          layout: collage.selectedLayout,
+          photos: collage.photos,
+          cellAssignments: collage.cellAssignments,
+          photoTransforms: collage.photoTransforms,
+          canvasConfig: collage.canvasConfig,
+          backgroundConfig: collage.backgroundConfig,
+          textElements: collage.textElements,
+          stickerElements: collage.stickerElements,
+          frameConfig: collage.frameConfig,
+        },
+        resolution,
+        format,
+        format === 'image/jpeg' ? 0.95 : undefined
+      );
 
-      // Trigger direct file download
-      const filename = `collage-${Date.now()}.png`;
+      const ext = format === 'image/png' ? 'png' : 'jpg';
+      const filename = `collage-${resolution}p-${Date.now()}.${ext}`;
       const downloadUrl = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = downloadUrl;
@@ -78,54 +97,18 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ onBack }) => {
 
       await saveProject(project);
 
-      // Fire celebratory confetti!
       confetti({
-        particleCount: 80,
-        spread: 70,
+        particleCount: 90,
+        spread: 80,
         origin: { y: 0.6 },
         colors: ['#ff2b6d', '#8b5cf6', '#3b82f6', '#f59e0b'],
       });
 
       setSavedSuccess(true);
-      setTimeout(() => setSavedSuccess(false), 3000);
+      setTimeout(() => setSavedSuccess(false), 4000);
     } catch (err) {
       console.error('Export error:', err);
-      alert('Failed to export collage. Please try again.');
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  // Trigger Native Web Share API
-  const handleShare = async () => {
-    setIsExporting(true);
-    try {
-      const blob = await renderCollageToBlob({
-        layout: collage.selectedLayout,
-        photos: collage.photos,
-        cellAssignments: collage.cellAssignments,
-        photoTransforms: collage.photoTransforms,
-        canvasConfig: collage.canvasConfig,
-        backgroundConfig: collage.backgroundConfig,
-        textElements: collage.textElements,
-        stickerElements: collage.stickerElements,
-        frameConfig: collage.frameConfig,
-      });
-
-      const file = new File([blob], `collage-${Date.now()}.png`, { type: 'image/png' });
-
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          title: 'My Photo Collage',
-          text: 'Created with College Gen Photo Collage App',
-          files: [file],
-        });
-      } else {
-        // Fallback: download
-        handleSave();
-      }
-    } catch (err) {
-      console.error('Share error:', err);
+      alert('Gagal mengunduh gambar. Silakan coba lagi.');
     } finally {
       setIsExporting(false);
     }
@@ -133,137 +116,147 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ onBack }) => {
 
   return (
     <div className="flex flex-col h-screen max-h-screen bg-[#f8f9fa] text-neutral-900 select-none overflow-hidden">
-      {/* Top Bar with Back Button (Video 02:57) */}
-      <header className="px-4 py-3 flex items-center justify-between border-b border-neutral-200/70 bg-white">
+      {/* Top Bar with Back Button */}
+      <header className="px-4 py-3 flex items-center justify-between border-b border-neutral-200/70 bg-white shrink-0">
         <button
           type="button"
           onClick={onBack}
           className="flex items-center gap-1 text-sm font-semibold text-neutral-700 hover:text-[#ff2b6d] transition-colors"
         >
           <ChevronLeft className="w-5 h-5" />
-          <span>Back</span>
+          <span>Kembali</span>
         </button>
 
-        <h1 className="text-sm font-bold text-neutral-800 uppercase tracking-wider">Save & Share</h1>
+        <h1 className="text-sm font-bold text-neutral-800 uppercase tracking-wider">
+          Simpan Kolase
+        </h1>
 
-        <div className="w-12" />
+        <div className="w-16" />
       </header>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6 gap-8 overflow-y-auto">
-        {/* Success toast alert */}
+      {/* Main Container */}
+      <div className="flex-1 flex flex-col items-center justify-center p-6 gap-6 overflow-y-auto max-w-md mx-auto w-full">
+        {/* Success Alert */}
         {savedSuccess && (
-          <div className="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 text-white rounded-full shadow-lg text-xs font-bold animate-in fade-in slide-in-from-top-4 duration-200">
-            <CheckCircle2 className="w-4 h-4" />
-            <span>Saved in high resolution & added to Project History!</span>
+          <div className="w-full flex items-center gap-2 px-4 py-3 bg-emerald-500 text-white rounded-2xl shadow-lg text-xs font-bold animate-in fade-in slide-in-from-top-4 duration-200">
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <span>Kolase berhasil disimpan & dicatat ke Riwayat Proyek!</span>
           </div>
         )}
 
-        {/* Action Circles (Video 02:57) */}
-        <div className="flex items-center gap-10">
-          {/* 1. SAVE BUTTON (Large Pink Circle) */}
-          <div className="flex flex-col items-center gap-2.5">
-            <button
-              type="button"
-              disabled={isExporting}
-              onClick={handleSave}
-              className="w-20 h-20 rounded-full bg-[#ff2b6d] text-white flex items-center justify-center shadow-xl shadow-pink-500/30 hover:bg-[#e0245e] hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer disabled:opacity-50"
-              title="Save Image"
-            >
-              {isExporting ? (
-                <Loader2 className="w-8 h-8 animate-spin" />
-              ) : (
-                <Download className="w-8 h-8 stroke-[2.5]" />
-              )}
-            </button>
-            <span className="text-xs font-bold text-neutral-800 tracking-wider uppercase">Save</span>
+        {/* Big Pink Save Icon Hero */}
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-[#ff2b6d] to-[#ff6b95] text-white flex items-center justify-center shadow-xl shadow-pink-500/25">
+            <Download className="w-11 h-11 stroke-[2.5]" />
           </div>
+          <span className="text-sm font-extrabold text-neutral-900 uppercase tracking-wider mt-1">
+            Simpan Gambar
+          </span>
+          <span className="text-xs text-neutral-400 font-mono">
+            {targetW} × {targetH} px
+          </span>
+        </div>
 
-          {/* 2. SHARE BUTTON (Large Dark Purple Circle) */}
-          <div className="flex flex-col items-center gap-2.5">
+        {/* Resolution Options Card */}
+        <div className="w-full bg-white rounded-2xl p-4 border border-neutral-200/80 shadow-xs flex flex-col gap-2.5">
+          <label className="text-xs font-bold text-neutral-500 uppercase tracking-wider">
+            Pilihan Resolusi
+          </label>
+          <div className="grid grid-cols-3 gap-2">
             <button
               type="button"
-              disabled={isExporting}
-              onClick={handleShare}
-              className="w-20 h-20 rounded-full bg-[#4a47a3] text-white flex items-center justify-center shadow-xl shadow-indigo-900/20 hover:bg-[#3d3a8e] hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer disabled:opacity-50"
-              title="Share Collage"
+              onClick={() => setResolution(1080)}
+              className={`py-2.5 px-2 rounded-xl text-xs font-bold flex flex-col items-center gap-0.5 border transition-all ${
+                resolution === 1080
+                  ? 'border-[#ff2b6d] bg-pink-50 text-[#ff2b6d] ring-1 ring-[#ff2b6d]'
+                  : 'border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-neutral-100'
+              }`}
             >
-              {isExporting ? (
-                <Loader2 className="w-8 h-8 animate-spin" />
-              ) : (
-                <Share2 className="w-8 h-8 stroke-[2.5]" />
-              )}
+              <span>HD</span>
+              <span className="text-[10px] font-normal opacity-70">1080p</span>
             </button>
-            <span className="text-xs font-bold text-neutral-800 tracking-wider uppercase">Share</span>
+
+            <button
+              type="button"
+              onClick={() => setResolution(2048)}
+              className={`py-2.5 px-2 rounded-xl text-xs font-bold flex flex-col items-center gap-0.5 border transition-all ${
+                resolution === 2048
+                  ? 'border-[#ff2b6d] bg-pink-50 text-[#ff2b6d] ring-1 ring-[#ff2b6d]'
+                  : 'border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-neutral-100'
+              }`}
+            >
+              <span>2K (Ultra)</span>
+              <span className="text-[10px] font-normal opacity-70">2048p</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setResolution(3840)}
+              className={`py-2.5 px-2 rounded-xl text-xs font-bold flex flex-col items-center gap-0.5 border transition-all ${
+                resolution === 3840
+                  ? 'border-[#ff2b6d] bg-pink-50 text-[#ff2b6d] ring-1 ring-[#ff2b6d]'
+                  : 'border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-neutral-100'
+              }`}
+            >
+              <span>4K (Max)</span>
+              <span className="text-[10px] font-normal opacity-70">3840p</span>
+            </button>
           </div>
         </div>
 
-        {/* Social Media Presets Row (Video 02:57) */}
-        <div className="w-full max-w-sm pt-6 border-t border-neutral-200/80 flex flex-col gap-4">
-          <div className="text-[11px] font-bold text-neutral-400 text-center uppercase tracking-wider">
-            Quick Social Export
-          </div>
-
-          <div className="grid grid-cols-4 gap-3 text-center">
-            {/* Instagram Story */}
+        {/* Format Options Card */}
+        <div className="w-full bg-white rounded-2xl p-4 border border-neutral-200/80 shadow-xs flex flex-col gap-2.5">
+          <label className="text-xs font-bold text-neutral-500 uppercase tracking-wider">
+            Format File
+          </label>
+          <div className="grid grid-cols-2 gap-2.5">
             <button
               type="button"
-              onClick={handleShare}
-              className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-neutral-100 transition-colors"
+              onClick={() => setFormat('image/png')}
+              className={`py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border transition-all ${
+                format === 'image/png'
+                  ? 'border-[#ff2b6d] bg-pink-50 text-[#ff2b6d] ring-1 ring-[#ff2b6d]'
+                  : 'border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-neutral-100'
+              }`}
             >
-              <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 text-white flex items-center justify-center shadow-md">
-                <svg className="w-6 h-6 fill-none stroke-current stroke-[2]" viewBox="0 0 24 24">
-                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-                </svg>
-              </div>
-              <span className="text-[11px] font-medium text-neutral-700">Story</span>
+              <FileImage className="w-4 h-4" />
+              <span>PNG (Kualitas Terbaik)</span>
             </button>
 
-            {/* Instagram Post */}
             <button
               type="button"
-              onClick={handleShare}
-              className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-neutral-100 transition-colors"
+              onClick={() => setFormat('image/jpeg')}
+              className={`py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border transition-all ${
+                format === 'image/jpeg'
+                  ? 'border-[#ff2b6d] bg-pink-50 text-[#ff2b6d] ring-1 ring-[#ff2b6d]'
+                  : 'border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-neutral-100'
+              }`}
             >
-              <div className="w-12 h-12 rounded-full bg-pink-600 text-white flex items-center justify-center shadow-md">
-                <svg className="w-6 h-6 fill-none stroke-current stroke-[2]" viewBox="0 0 24 24">
-                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-                </svg>
-              </div>
-              <span className="text-[11px] font-medium text-neutral-700">Post</span>
-            </button>
-
-            {/* Facebook Post */}
-            <button
-              type="button"
-              onClick={handleShare}
-              className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-neutral-100 transition-colors"
-            >
-              <div className="w-12 h-12 rounded-full bg-[#1877f2] text-white flex items-center justify-center shadow-md">
-                <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
-                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-                </svg>
-              </div>
-              <span className="text-[11px] font-medium text-neutral-700">Facebook</span>
-            </button>
-
-            {/* WhatsApp / Message */}
-            <button
-              type="button"
-              onClick={handleShare}
-              className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-neutral-100 transition-colors"
-            >
-              <div className="w-12 h-12 rounded-full bg-[#25d366] text-white flex items-center justify-center shadow-md">
-                <MessageCircle className="w-6 h-6" />
-              </div>
-              <span className="text-[11px] font-medium text-neutral-700">Message</span>
+              <FileImage className="w-4 h-4" />
+              <span>JPEG (Ukuran Kecil)</span>
             </button>
           </div>
         </div>
+
+        {/* Download Action Button */}
+        <button
+          type="button"
+          disabled={isExporting}
+          onClick={handleDownload}
+          className="w-full py-4 rounded-2xl bg-[#ff2b6d] hover:bg-[#e0245e] active:scale-[0.98] text-white font-extrabold text-sm shadow-lg shadow-pink-500/25 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+        >
+          {isExporting ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              <span>Sedang Merender {resolution}p...</span>
+            </>
+          ) : (
+            <>
+              <Download className="w-5 h-5 stroke-[2.5]" />
+              <span>Download Gambar Sekarang</span>
+            </>
+          )}
+        </button>
       </div>
     </div>
   );

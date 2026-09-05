@@ -7,9 +7,7 @@ export const CLASSIC_LAYOUTS: CollageLayout[] = [
     name: 'Single Full',
     type: 'classic',
     photoCount: 1,
-    cells: [
-      { id: 'c1', x: 0, y: 0, width: 100, height: 100 },
-    ],
+    cells: [{ id: 'c1', x: 0, y: 0, width: 100, height: 100 }],
   },
 
   // --- 2 PHOTOS ---
@@ -76,28 +74,6 @@ export const CLASSIC_LAYOUTS: CollageLayout[] = [
 
   // --- 3 PHOTOS ---
   {
-    id: 'classic-3-rows',
-    name: '3 Equal Rows',
-    type: 'classic',
-    photoCount: 3,
-    cells: [
-      { id: 'c1', x: 0, y: 0, width: 100, height: 33.33 },
-      { id: 'c2', x: 0, y: 33.33, width: 100, height: 33.34 },
-      { id: 'c3', x: 0, y: 66.67, width: 100, height: 33.33 },
-    ],
-  },
-  {
-    id: 'classic-3-cols',
-    name: '3 Equal Columns',
-    type: 'classic',
-    photoCount: 3,
-    cells: [
-      { id: 'c1', x: 0, y: 0, width: 33.33, height: 100 },
-      { id: 'c2', x: 33.33, y: 0, width: 33.34, height: 100 },
-      { id: 'c3', x: 66.67, y: 0, width: 33.33, height: 100 },
-    ],
-  },
-  {
     id: 'classic-3-1top-2bot',
     name: '1 Top, 2 Bottom',
     type: 'classic',
@@ -141,6 +117,72 @@ export const CLASSIC_LAYOUTS: CollageLayout[] = [
       { id: 'c3', x: 50, y: 0, width: 50, height: 100 },
     ],
   },
+  {
+    id: 'classic-3-rows',
+    name: '3 Equal Rows',
+    type: 'classic',
+    photoCount: 3,
+    cells: [
+      { id: 'c1', x: 0, y: 0, width: 100, height: 33.33 },
+      { id: 'c2', x: 0, y: 33.33, width: 100, height: 33.34 },
+      { id: 'c3', x: 0, y: 66.67, width: 100, height: 33.33 },
+    ],
+  },
+  {
+    id: 'classic-3-cols',
+    name: '3 Equal Columns',
+    type: 'classic',
+    photoCount: 3,
+    cells: [
+      { id: 'c1', x: 0, y: 0, width: 33.33, height: 100 },
+      { id: 'c2', x: 33.33, y: 0, width: 33.34, height: 100 },
+      { id: 'c3', x: 66.67, y: 0, width: 33.33, height: 100 },
+    ],
+  },
+  {
+    id: 'classic-3-1toplarge-2bot',
+    name: '1 Top 65%, 2 Bottom',
+    type: 'classic',
+    photoCount: 3,
+    cells: [
+      { id: 'c1', x: 0, y: 0, width: 100, height: 66.67 },
+      { id: 'c2', x: 0, y: 66.67, width: 50, height: 33.33 },
+      { id: 'c3', x: 50, y: 66.67, width: 50, height: 33.33 },
+    ],
+  },
+  {
+    id: 'classic-3-2top-1botlarge',
+    name: '2 Top, 1 Bottom 65%',
+    type: 'classic',
+    photoCount: 3,
+    cells: [
+      { id: 'c1', x: 0, y: 0, width: 50, height: 33.33 },
+      { id: 'c2', x: 50, y: 0, width: 50, height: 33.33 },
+      { id: 'c3', x: 0, y: 33.33, width: 100, height: 66.67 },
+    ],
+  },
+  {
+    id: 'classic-3-1leftlarge-2right',
+    name: '1 Left 65%, 2 Right',
+    type: 'classic',
+    photoCount: 3,
+    cells: [
+      { id: 'c1', x: 0, y: 0, width: 66.67, height: 100 },
+      { id: 'c2', x: 66.67, y: 0, width: 33.33, height: 50 },
+      { id: 'c3', x: 66.67, y: 50, width: 33.33, height: 50 },
+    ],
+  },
+  {
+    id: 'classic-3-2left-1rightlarge',
+    name: '2 Left, 1 Right 65%',
+    type: 'classic',
+    photoCount: 3,
+    cells: [
+      { id: 'c1', x: 0, y: 0, width: 33.33, height: 50 },
+      { id: 'c2', x: 0, y: 50, width: 33.33, height: 50 },
+      { id: 'c3', x: 33.33, y: 0, width: 66.67, height: 100 },
+    ],
+  },
 
   // --- 4 PHOTOS ---
   {
@@ -153,30 +195,6 @@ export const CLASSIC_LAYOUTS: CollageLayout[] = [
       { id: 'c2', x: 50, y: 0, width: 50, height: 50 },
       { id: 'c3', x: 0, y: 50, width: 50, height: 50 },
       { id: 'c4', x: 50, y: 50, width: 50, height: 50 },
-    ],
-  },
-  {
-    id: 'classic-4-1left-3right',
-    name: '1 Left Large, 3 Right',
-    type: 'classic',
-    photoCount: 4,
-    cells: [
-      { id: 'c1', x: 0, y: 0, width: 60, height: 100 },
-      { id: 'c2', x: 60, y: 0, width: 40, height: 33.33 },
-      { id: 'c3', x: 60, y: 33.33, width: 40, height: 33.34 },
-      { id: 'c4', x: 60, y: 66.67, width: 40, height: 33.33 },
-    ],
-  },
-  {
-    id: 'classic-4-1top-3bot',
-    name: '1 Top Large, 3 Bottom',
-    type: 'classic',
-    photoCount: 4,
-    cells: [
-      { id: 'c1', x: 0, y: 0, width: 100, height: 60 },
-      { id: 'c2', x: 0, y: 60, width: 33.33, height: 40 },
-      { id: 'c3', x: 33.33, y: 60, width: 33.34, height: 40 },
-      { id: 'c4', x: 66.67, y: 60, width: 33.33, height: 40 },
     ],
   },
   {
@@ -201,6 +219,66 @@ export const CLASSIC_LAYOUTS: CollageLayout[] = [
       { id: 'c2', x: 0, y: 25, width: 100, height: 25 },
       { id: 'c3', x: 0, y: 50, width: 100, height: 25 },
       { id: 'c4', x: 0, y: 75, width: 100, height: 25 },
+    ],
+  },
+  {
+    id: 'classic-4-1left-3right',
+    name: '1 Left Large, 3 Right',
+    type: 'classic',
+    photoCount: 4,
+    cells: [
+      { id: 'c1', x: 0, y: 0, width: 66.67, height: 100 },
+      { id: 'c2', x: 66.67, y: 0, width: 33.33, height: 33.33 },
+      { id: 'c3', x: 66.67, y: 33.33, width: 33.33, height: 33.34 },
+      { id: 'c4', x: 66.67, y: 66.67, width: 33.33, height: 33.33 },
+    ],
+  },
+  {
+    id: 'classic-4-3left-1right',
+    name: '3 Left, 1 Right Large',
+    type: 'classic',
+    photoCount: 4,
+    cells: [
+      { id: 'c1', x: 0, y: 0, width: 33.33, height: 33.33 },
+      { id: 'c2', x: 0, y: 33.33, width: 33.33, height: 33.34 },
+      { id: 'c3', x: 0, y: 66.67, width: 33.33, height: 33.33 },
+      { id: 'c4', x: 33.33, y: 0, width: 66.67, height: 100 },
+    ],
+  },
+  {
+    id: 'classic-4-1top-3bot',
+    name: '1 Top Large, 3 Bottom',
+    type: 'classic',
+    photoCount: 4,
+    cells: [
+      { id: 'c1', x: 0, y: 0, width: 100, height: 66.67 },
+      { id: 'c2', x: 0, y: 66.67, width: 33.33, height: 33.33 },
+      { id: 'c3', x: 33.33, y: 66.67, width: 33.34, height: 33.33 },
+      { id: 'c4', x: 66.67, y: 66.67, width: 33.33, height: 33.33 },
+    ],
+  },
+  {
+    id: 'classic-4-3top-1bot',
+    name: '3 Top, 1 Bottom Large',
+    type: 'classic',
+    photoCount: 4,
+    cells: [
+      { id: 'c1', x: 0, y: 0, width: 33.33, height: 33.33 },
+      { id: 'c2', x: 33.33, y: 0, width: 33.34, height: 33.33 },
+      { id: 'c3', x: 66.67, y: 0, width: 33.33, height: 33.33 },
+      { id: 'c4', x: 0, y: 33.33, width: 100, height: 66.67 },
+    ],
+  },
+  {
+    id: 'classic-4-center-pin',
+    name: '1 Center Square + 3 Strip',
+    type: 'classic',
+    photoCount: 4,
+    cells: [
+      { id: 'c1', x: 0, y: 0, width: 50, height: 66.67 },
+      { id: 'c2', x: 50, y: 0, width: 50, height: 33.33 },
+      { id: 'c3', x: 50, y: 33.33, width: 50, height: 66.67 },
+      { id: 'c4', x: 0, y: 66.67, width: 50, height: 33.33 },
     ],
   },
 
@@ -232,6 +310,45 @@ export const CLASSIC_LAYOUTS: CollageLayout[] = [
     ],
   },
   {
+    id: 'classic-5-1top-4bot',
+    name: '1 Top Full, 4 Bottom',
+    type: 'classic',
+    photoCount: 5,
+    cells: [
+      { id: 'c1', x: 0, y: 0, width: 100, height: 60 },
+      { id: 'c2', x: 0, y: 60, width: 25, height: 40 },
+      { id: 'c3', x: 25, y: 60, width: 25, height: 40 },
+      { id: 'c4', x: 50, y: 60, width: 25, height: 40 },
+      { id: 'c5', x: 75, y: 60, width: 25, height: 40 },
+    ],
+  },
+  {
+    id: 'classic-5-4top-1bot',
+    name: '4 Top, 1 Bottom Full',
+    type: 'classic',
+    photoCount: 5,
+    cells: [
+      { id: 'c1', x: 0, y: 0, width: 25, height: 40 },
+      { id: 'c2', x: 25, y: 0, width: 25, height: 40 },
+      { id: 'c3', x: 50, y: 0, width: 25, height: 40 },
+      { id: 'c4', x: 75, y: 0, width: 25, height: 40 },
+      { id: 'c5', x: 0, y: 40, width: 100, height: 60 },
+    ],
+  },
+  {
+    id: 'classic-5-1left-4right',
+    name: '1 Left Full, 4 Right (2x2)',
+    type: 'classic',
+    photoCount: 5,
+    cells: [
+      { id: 'c1', x: 0, y: 0, width: 50, height: 100 },
+      { id: 'c2', x: 50, y: 0, width: 25, height: 50 },
+      { id: 'c3', x: 75, y: 0, width: 25, height: 50 },
+      { id: 'c4', x: 50, y: 50, width: 25, height: 50 },
+      { id: 'c5', x: 75, y: 50, width: 25, height: 50 },
+    ],
+  },
+  {
     id: 'classic-5-1center-4corners',
     name: 'Center Focus + 4 Corners',
     type: 'classic',
@@ -242,6 +359,19 @@ export const CLASSIC_LAYOUTS: CollageLayout[] = [
       { id: 'c3', x: 50, y: 0, width: 50, height: 25 },
       { id: 'c4', x: 0, y: 75, width: 50, height: 25 },
       { id: 'c5', x: 50, y: 75, width: 50, height: 25 },
+    ],
+  },
+  {
+    id: 'classic-5-split-columns',
+    name: '2 Left, 1 Center, 2 Right',
+    type: 'classic',
+    photoCount: 5,
+    cells: [
+      { id: 'c1', x: 0, y: 0, width: 33.33, height: 50 },
+      { id: 'c2', x: 0, y: 50, width: 33.33, height: 50 },
+      { id: 'c3', x: 33.33, y: 0, width: 33.34, height: 100 },
+      { id: 'c4', x: 66.67, y: 0, width: 33.33, height: 50 },
+      { id: 'c5', x: 66.67, y: 50, width: 33.33, height: 50 },
     ],
   },
 
@@ -288,10 +418,38 @@ export const CLASSIC_LAYOUTS: CollageLayout[] = [
       { id: 'c6', x: 80, y: 60, width: 20, height: 40 },
     ],
   },
+  {
+    id: 'classic-6-1leftlarge-5right',
+    name: '1 Large Left, 5 Right',
+    type: 'classic',
+    photoCount: 6,
+    cells: [
+      { id: 'c1', x: 0, y: 0, width: 50, height: 100 },
+      { id: 'c2', x: 50, y: 0, width: 50, height: 33.33 },
+      { id: 'c3', x: 50, y: 33.33, width: 25, height: 33.34 },
+      { id: 'c4', x: 75, y: 33.33, width: 25, height: 33.34 },
+      { id: 'c5', x: 50, y: 66.67, width: 25, height: 33.33 },
+      { id: 'c6', x: 75, y: 66.67, width: 25, height: 33.33 },
+    ],
+  },
+  {
+    id: 'classic-6-2top-2mid-2bot',
+    name: '3 Rows of 2 Columns',
+    type: 'classic',
+    photoCount: 6,
+    cells: [
+      { id: 'c1', x: 0, y: 0, width: 50, height: 33.33 },
+      { id: 'c2', x: 50, y: 0, width: 50, height: 33.33 },
+      { id: 'c3', x: 0, y: 33.33, width: 50, height: 33.34 },
+      { id: 'c4', x: 50, y: 33.33, width: 50, height: 33.34 },
+      { id: 'c5', x: 0, y: 66.67, width: 50, height: 33.33 },
+      { id: 'c6', x: 50, y: 66.67, width: 50, height: 33.33 },
+    ],
+  },
 
   // --- 7 PHOTOS ---
   {
-    id: 'classic-7-mosaic',
+    id: 'classic-7-3top-4bot',
     name: '3 Top, 4 Bottom',
     type: 'classic',
     photoCount: 7,
@@ -305,10 +463,40 @@ export const CLASSIC_LAYOUTS: CollageLayout[] = [
       { id: 'c7', x: 75, y: 50, width: 25, height: 50 },
     ],
   },
+  {
+    id: 'classic-7-4top-3bot',
+    name: '4 Top, 3 Bottom',
+    type: 'classic',
+    photoCount: 7,
+    cells: [
+      { id: 'c1', x: 0, y: 0, width: 25, height: 50 },
+      { id: 'c2', x: 25, y: 0, width: 25, height: 50 },
+      { id: 'c3', x: 50, y: 0, width: 25, height: 50 },
+      { id: 'c4', x: 75, y: 0, width: 25, height: 50 },
+      { id: 'c5', x: 0, y: 50, width: 33.33, height: 50 },
+      { id: 'c6', x: 33.33, y: 50, width: 33.34, height: 50 },
+      { id: 'c7', x: 66.67, y: 50, width: 33.33, height: 50 },
+    ],
+  },
+  {
+    id: 'classic-7-1large-6small',
+    name: '1 Top Large, 6 Bottom (3x2)',
+    type: 'classic',
+    photoCount: 7,
+    cells: [
+      { id: 'c1', x: 0, y: 0, width: 100, height: 50 },
+      { id: 'c2', x: 0, y: 50, width: 33.33, height: 25 },
+      { id: 'c3', x: 33.33, y: 50, width: 33.34, height: 25 },
+      { id: 'c4', x: 66.67, y: 50, width: 33.33, height: 25 },
+      { id: 'c5', x: 0, y: 75, width: 33.33, height: 25 },
+      { id: 'c6', x: 33.33, y: 75, width: 33.34, height: 25 },
+      { id: 'c7', x: 66.67, y: 75, width: 33.33, height: 25 },
+    ],
+  },
 
   // --- 8 PHOTOS ---
   {
-    id: 'classic-8-grid',
+    id: 'classic-8-4x2',
     name: '4x2 Grid',
     type: 'classic',
     photoCount: 8,
@@ -321,6 +509,38 @@ export const CLASSIC_LAYOUTS: CollageLayout[] = [
       { id: 'c6', x: 25, y: 50, width: 25, height: 50 },
       { id: 'c7', x: 50, y: 50, width: 25, height: 50 },
       { id: 'c8', x: 75, y: 50, width: 25, height: 50 },
+    ],
+  },
+  {
+    id: 'classic-8-2x4',
+    name: '2x4 Grid',
+    type: 'classic',
+    photoCount: 8,
+    cells: [
+      { id: 'c1', x: 0, y: 0, width: 50, height: 25 },
+      { id: 'c2', x: 50, y: 0, width: 50, height: 25 },
+      { id: 'c3', x: 0, y: 25, width: 50, height: 25 },
+      { id: 'c4', x: 50, y: 25, width: 50, height: 25 },
+      { id: 'c5', x: 0, y: 50, width: 50, height: 25 },
+      { id: 'c6', x: 50, y: 50, width: 50, height: 25 },
+      { id: 'c7', x: 0, y: 75, width: 50, height: 25 },
+      { id: 'c8', x: 50, y: 75, width: 50, height: 25 },
+    ],
+  },
+  {
+    id: 'classic-8-3-2-3',
+    name: '3 Top, 2 Center, 3 Bottom',
+    type: 'classic',
+    photoCount: 8,
+    cells: [
+      { id: 'c1', x: 0, y: 0, width: 33.33, height: 33.33 },
+      { id: 'c2', x: 33.33, y: 0, width: 33.34, height: 33.33 },
+      { id: 'c3', x: 66.67, y: 0, width: 33.33, height: 33.33 },
+      { id: 'c4', x: 0, y: 33.33, width: 50, height: 33.34 },
+      { id: 'c5', x: 50, y: 33.33, width: 50, height: 33.34 },
+      { id: 'c6', x: 0, y: 66.67, width: 33.33, height: 33.33 },
+      { id: 'c7', x: 33.33, y: 66.67, width: 33.34, height: 33.33 },
+      { id: 'c8', x: 66.67, y: 66.67, width: 33.33, height: 33.33 },
     ],
   },
 
@@ -344,7 +564,7 @@ export const CLASSIC_LAYOUTS: CollageLayout[] = [
   },
   {
     id: 'classic-9-center-large',
-    name: '1 Center Large + 8 Surrounding',
+    name: '1 Center Large (2x2) + 8 Border',
     type: 'classic',
     photoCount: 9,
     cells: [
@@ -357,6 +577,91 @@ export const CLASSIC_LAYOUTS: CollageLayout[] = [
       { id: 'c7', x: 0, y: 75, width: 25, height: 25 },
       { id: 'c8', x: 25, y: 75, width: 50, height: 25 },
       { id: 'c9', x: 75, y: 75, width: 25, height: 25 },
+    ],
+  },
+  {
+    id: 'classic-9-4-1-4',
+    name: '4 Top, 1 Center Full, 4 Bottom',
+    type: 'classic',
+    photoCount: 9,
+    cells: [
+      { id: 'c1', x: 0, y: 0, width: 25, height: 30 },
+      { id: 'c2', x: 25, y: 0, width: 25, height: 30 },
+      { id: 'c3', x: 50, y: 0, width: 25, height: 30 },
+      { id: 'c4', x: 75, y: 0, width: 25, height: 30 },
+      { id: 'c5', x: 0, y: 30, width: 100, height: 40 },
+      { id: 'c6', x: 0, y: 70, width: 25, height: 30 },
+      { id: 'c7', x: 25, y: 70, width: 25, height: 30 },
+      { id: 'c8', x: 50, y: 70, width: 25, height: 30 },
+      { id: 'c9', x: 75, y: 70, width: 25, height: 30 },
+    ],
+  },
+
+  // --- 10 PHOTOS ---
+  {
+    id: 'classic-10-5x2',
+    name: '5x2 Grid',
+    type: 'classic',
+    photoCount: 10,
+    cells: [
+      { id: 'c1', x: 0, y: 0, width: 20, height: 50 },
+      { id: 'c2', x: 20, y: 0, width: 20, height: 50 },
+      { id: 'c3', x: 40, y: 0, width: 20, height: 50 },
+      { id: 'c4', x: 60, y: 0, width: 20, height: 50 },
+      { id: 'c5', x: 80, y: 0, width: 20, height: 50 },
+      { id: 'c6', x: 0, y: 50, width: 20, height: 50 },
+      { id: 'c7', x: 20, y: 50, width: 20, height: 50 },
+      { id: 'c8', x: 40, y: 50, width: 20, height: 50 },
+      { id: 'c9', x: 60, y: 50, width: 20, height: 50 },
+      { id: 'c10', x: 80, y: 50, width: 20, height: 50 },
+    ],
+  },
+
+  // --- 12 PHOTOS ---
+  {
+    id: 'classic-12-4x3',
+    name: '4x3 Grid (12 Photos)',
+    type: 'classic',
+    photoCount: 12,
+    cells: [
+      { id: 'c1', x: 0, y: 0, width: 25, height: 33.33 },
+      { id: 'c2', x: 25, y: 0, width: 25, height: 33.33 },
+      { id: 'c3', x: 50, y: 0, width: 25, height: 33.33 },
+      { id: 'c4', x: 75, y: 0, width: 25, height: 33.33 },
+      { id: 'c5', x: 0, y: 33.33, width: 25, height: 33.34 },
+      { id: 'c6', x: 25, y: 33.33, width: 25, height: 33.34 },
+      { id: 'c7', x: 50, y: 33.33, width: 25, height: 33.34 },
+      { id: 'c8', x: 75, y: 33.33, width: 25, height: 33.34 },
+      { id: 'c9', x: 0, y: 66.67, width: 25, height: 33.33 },
+      { id: 'c10', x: 25, y: 66.67, width: 25, height: 33.33 },
+      { id: 'c11', x: 50, y: 66.67, width: 25, height: 33.33 },
+      { id: 'c12', x: 75, y: 66.67, width: 25, height: 33.33 },
+    ],
+  },
+
+  // --- 16 PHOTOS ---
+  {
+    id: 'classic-16-4x4',
+    name: '4x4 Grid (16 Photos)',
+    type: 'classic',
+    photoCount: 16,
+    cells: [
+      { id: 'c1', x: 0, y: 0, width: 25, height: 25 },
+      { id: 'c2', x: 25, y: 0, width: 25, height: 25 },
+      { id: 'c3', x: 50, y: 0, width: 25, height: 25 },
+      { id: 'c4', x: 75, y: 0, width: 25, height: 25 },
+      { id: 'c5', x: 0, y: 25, width: 25, height: 25 },
+      { id: 'c6', x: 25, y: 25, width: 25, height: 25 },
+      { id: 'c7', x: 50, y: 25, width: 25, height: 25 },
+      { id: 'c8', x: 75, y: 25, width: 25, height: 25 },
+      { id: 'c9', x: 0, y: 50, width: 25, height: 25 },
+      { id: 'c10', x: 25, y: 50, width: 25, height: 25 },
+      { id: 'c11', x: 50, y: 50, width: 25, height: 25 },
+      { id: 'c12', x: 75, y: 50, width: 25, height: 25 },
+      { id: 'c13', x: 0, y: 75, width: 25, height: 25 },
+      { id: 'c14', x: 25, y: 75, width: 25, height: 25 },
+      { id: 'c15', x: 50, y: 75, width: 25, height: 25 },
+      { id: 'c16', x: 75, y: 75, width: 25, height: 25 },
     ],
   },
 ];
