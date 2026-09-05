@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { X, Undo2, Settings } from 'lucide-react';
+import { X, Undo2, Redo2, Settings } from 'lucide-react';
 import { useCollage } from '@/context/CollageContext';
 
 interface TopNavbarProps {
@@ -15,12 +15,12 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
   onOpenSettings,
   onSave,
 }) => {
-  const { undo, canUndo } = useCollage();
+  const { undo, redo, canUndo, canRedo } = useCollage();
 
   return (
     <header className="px-4 py-3 bg-white border-b border-neutral-100 flex items-center justify-between shrink-0 select-none z-30">
-      {/* Left: Close ✕ and Undo ↶ (Video 00:49) */}
-      <div className="flex items-center gap-3">
+      {/* Left: Close ✕, Undo ↶, and Redo ↷ */}
+      <div className="flex items-center gap-2 sm:gap-3">
         <button
           type="button"
           onClick={onClose}
@@ -39,9 +39,23 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
               ? 'text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100'
               : 'text-neutral-300 cursor-not-allowed'
           }`}
-          title="Undo Last Action"
+          title="Undo"
         >
           <Undo2 className="w-5 h-5" />
+        </button>
+
+        <button
+          type="button"
+          onClick={redo}
+          disabled={!canRedo}
+          className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+            canRedo
+              ? 'text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100'
+              : 'text-neutral-300 cursor-not-allowed'
+          }`}
+          title="Redo"
+        >
+          <Redo2 className="w-5 h-5" />
         </button>
       </div>
 

@@ -1,6 +1,15 @@
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
 import { CollageProject } from '@/types/collage';
 
+export interface StoredUserPhoto {
+  id: string;
+  name: string;
+  dataUrl: string;
+  width: number;
+  height: number;
+  createdAt: number;
+}
+
 interface CollageDBSchema extends DBSchema {
   drafts: {
     key: string;
@@ -11,10 +20,15 @@ interface CollageDBSchema extends DBSchema {
     value: CollageProject;
     indexes: { 'by-updated': number };
   };
+  user_photos: {
+    key: string;
+    value: StoredUserPhoto;
+    indexes: { 'by-created': number };
+  };
 }
 
 const DB_NAME = 'college-gen-db';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let dbPromise: Promise<IDBPDatabase<CollageDBSchema>> | null = null;
 
@@ -22,13 +36,17 @@ function getDB() {
   if (typeof window === 'undefined') return null;
   if (!dbPromise) {
     dbPromise = openDB<CollageDBSchema>(DB_NAME, DB_VERSION, {
-      upgrade(db) {
+      upgrade(db, oldVersion) {
         if (!db.objectStoreNames.contains('drafts')) {
           db.createObjectStore('drafts');
         }
         if (!db.objectStoreNames.contains('projects')) {
           const projectStore = db.createObjectStore('projects', { keyPath: 'id' });
           projectStore.createIndex('by-updated', 'updatedAt');
+        }
+        if (!db.objectStoreNames.contains('user_photos')) {
+          const photoStore = db.createObjectStore('user_photos', { keyPath: 'id' });
+          photoStore.createIndex('by-created', 'createdAt');
         }
       },
     });
@@ -126,4 +144,47 @@ export function importProjectFromJson(jsonString: string): CollageProject {
     id: 'proj-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
     updatedAt: Date.now(),
   };
+}
+
+/** Save user uploaded photo permanently */
+export async function saveUploadedPhoto(photo: {
+  id: string;
+  name: string;
+  dataUrl: string;
+  width?: number;
+  height?: number;
+}): Promise<void> {
+  const db = await getDB();
+  if (!db) return;
+  await db.put('user_photos', {
+    id: photo.id,
+    name: photo.name,
+    dataUrl: photo.dataUrl,
+    width: photo.width || 800,
+    height: photo.height || 800,
+    createdAt: Date.now(),
+  });
+}
+
+/** Get all user uploaded photos permanently */
+export async function getUploadedPhotos(): Promise<
+  Array<{ id: string; name: string; url: string; width: number; height: number }>
+> {
+  const db = await getDB();
+  if (!db) return [];
+  const items = await db.getAllFromIndex('user_photos', 'by-created');
+  return items.reverse().map((item) => ({
+    id: item.id,
+    name: item.name,
+    url: item.dataUrl,
+    width: item.width,
+    height: item.height,
+  }));
+}
+
+/** Delete uploaded photo */
+export async function deleteUploadedPhoto(id: string): Promise<void> {
+  const db = await getDB();
+  if (!db) return;
+  await db.delete('user_photos', id);
 }

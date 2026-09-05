@@ -2,8 +2,18 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Photo Collage Generator - Create Unique Collages",
+  title: "Buka Collage - Photo Collage Maker",
   description: "Create and customize high-resolution photo collages with classic & stylish layouts, text, and frames.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Buka Collage",
+  },
+  icons: {
+    icon: "/icon-192.png",
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export const viewport: Viewport = {

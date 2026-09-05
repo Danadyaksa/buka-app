@@ -13,8 +13,7 @@ import { FramePanel } from '@/components/panels/FramePanel';
 import { TextEditorModal } from '@/components/panels/TextEditorModal';
 import { ExportScreen } from '@/components/export/ExportScreen';
 import { ProjectsModal } from '@/components/projects/ProjectsModal';
-import { DraftRecoveryBanner } from '@/components/projects/DraftRecoveryBanner';
-import { saveActiveDraft, urlToBase64 } from '@/lib/storage';
+import { saveProject, urlToBase64 } from '@/lib/storage';
 import { TextOverlayItem, CollageProject } from '@/types/collage';
 
 function MainApp() {
@@ -24,7 +23,8 @@ function MainApp() {
   const [showTextModal, setShowTextModal] = useState(false);
   const [editingTextItem, setEditingTextItem] = useState<TextOverlayItem | null>(null);
 
-  // Auto-save active draft to IndexedDB with 1s debounce
+  // Auto-save project to IndexedDB with 1s debounce
+  const currentProjectIdRef = useRef<string | null>(null);
   const autoSaveTimer = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -41,9 +41,13 @@ function MainApp() {
             }))
           );
 
-          const draft: CollageProject = {
-            id: 'active-draft',
-            title: 'Draft Project',
+          if (!currentProjectIdRef.current) {
+            currentProjectIdRef.current = 'proj-' + Date.now();
+          }
+
+          const projectData: CollageProject = {
+            id: currentProjectIdRef.current,
+            title: `Kolase ${collage.photos.length} Foto`,
             createdAt: Date.now(),
             updatedAt: Date.now(),
             photos: convertedPhotos,
@@ -57,9 +61,9 @@ function MainApp() {
             frameConfig: collage.frameConfig,
           };
 
-          await saveActiveDraft(draft);
+          await saveProject(projectData);
         } catch (err) {
-          console.error('Auto-save error:', err);
+          console.error('Auto-save project error:', err);
         }
       }, 1000);
     }
@@ -84,11 +88,6 @@ function MainApp() {
     <div className="min-h-screen bg-neutral-900 flex justify-center">
       {/* Outer App Shell Container: Max width 640px for smartphone aspect or centered responsive frame */}
       <div className="w-full max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-3xl min-h-screen bg-white shadow-2xl flex flex-col relative overflow-hidden">
-        {/* Draft Recovery Banner */}
-        {view === 'picker' && (
-          <DraftRecoveryBanner onRestore={() => setView('editor')} />
-        )}
-
         {/* --- VIEW 1: MEDIA PICKER --- */}
         {view === 'picker' && (
           <MediaPicker

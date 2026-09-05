@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
 import {
   PhotoItem,
   CollageLayout,
@@ -16,6 +16,12 @@ import {
 } from '@/types/collage';
 import { CLASSIC_LAYOUTS } from '@/config/layoutsClassic';
 import { STYLISH_LAYOUTS } from '@/config/layoutsStylish';
+import {
+  getUploadedPhotos,
+  saveUploadedPhoto,
+  deleteUploadedPhoto,
+  urlToBase64,
+} from '@/lib/storage';
 
 const DEFAULT_TRANSFORM: PhotoTransform = {
   panX: 0,
@@ -70,9 +76,11 @@ interface CollageContextType {
   activeTab: ActiveToolTab;
   activeCellId: string | null;
   canUndo: boolean;
+  canRedo: boolean;
 
   uploadedPhotos: PhotoItem[];
   addUploadedPhotos: (items: PhotoItem[]) => void;
+  deleteUploadedPhotoById: (id: string) => Promise<void>;
   customCells: CellLayout[] | null;
   setCustomCells: (cells: CellLayout[] | null) => void;
 
@@ -97,6 +105,7 @@ interface CollageContextType {
   deleteStickerElement: (id: string) => void;
   setFrameConfig: (frame: FrameConfig) => void;
   undo: () => void;
+  redo: () => void;
   loadProject: (project: CollageProject) => void;
   resetCollage: () => void;
 }
@@ -123,26 +132,21 @@ export const CollageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [activeCellId, setActiveCellId] = useState<string | null>(null);
 
   const historyRef = useRef<Snapshot[]>([]);
+  const redoRef = useRef<Snapshot[]>([]);
   const [canUndo, setCanUndo] = useState(false);
+  const [canRedo, setCanRedo] = useState(false);
 
-  const pushSnapshot = useCallback(() => {
-    const current: Snapshot = {
-      photos: [...photos],
-      cellAssignments: { ...cellAssignments },
-      photoTransforms: { ...photoTransforms },
-      layoutId: selectedLayout.id,
-      canvasConfig: { ...canvasConfig },
-      backgroundConfig: { ...backgroundConfig },
-      textElements: [...textElements],
-      stickerElements: [...stickerElements],
-      frameConfig: { ...frameConfig },
-    };
-    historyRef.current.push(current);
-    if (historyRef.current.length > 20) {
-      historyRef.current.shift();
-    }
-    setCanUndo(true);
-  }, [
+  const getCurrentSnapshot = useCallback((): Snapshot => ({
+    photos: [...photos],
+    cellAssignments: { ...cellAssignments },
+    photoTransforms: { ...photoTransforms },
+    layoutId: selectedLayout.id,
+    canvasConfig: { ...canvasConfig },
+    backgroundConfig: { ...backgroundConfig },
+    textElements: [...textElements],
+    stickerElements: [...stickerElements],
+    frameConfig: { ...frameConfig },
+  }), [
     photos,
     cellAssignments,
     photoTransforms,
@@ -154,10 +158,38 @@ export const CollageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     frameConfig,
   ]);
 
+  const pushSnapshot = useCallback(() => {
+    // Only push undo history if photos are already active in the editor
+    if (photos.length === 0) return;
+
+    const current = getCurrentSnapshot();
+    historyRef.current.push(current);
+    if (historyRef.current.length > 30) {
+      historyRef.current.shift();
+    }
+    // Any new action clears the redo stack
+    redoRef.current = [];
+    setCanUndo(true);
+    setCanRedo(false);
+  }, [photos.length, getCurrentSnapshot]);
+
   const undo = useCallback(() => {
     if (historyRef.current.length === 0) return;
+
+    // Check if the state to restore has 0 photos - never allow undoing to 0 photos!
+    const targetSnapshot = historyRef.current[historyRef.current.length - 1];
+    if (targetSnapshot.photos.length === 0) {
+      historyRef.current.pop();
+      setCanUndo(false);
+      return;
+    }
+
+    const current = getCurrentSnapshot();
     const prev = historyRef.current.pop();
     if (!prev) return;
+
+    redoRef.current.push(current);
+    setCanRedo(true);
 
     setPhotosState(prev.photos);
     setCellAssignments(prev.cellAssignments);
@@ -170,12 +202,45 @@ export const CollageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setStickerElements(prev.stickerElements);
     setFrameConfigState(prev.frameConfig);
 
-    setCanUndo(historyRef.current.length > 0);
-  }, []);
+    setCanUndo(historyRef.current.length > 0 && historyRef.current[historyRef.current.length - 1].photos.length > 0);
+  }, [getCurrentSnapshot]);
+
+  const redo = useCallback(() => {
+    if (redoRef.current.length === 0) return;
+
+    const current = getCurrentSnapshot();
+    const next = redoRef.current.pop();
+    if (!next) return;
+
+    historyRef.current.push(current);
+    setCanUndo(true);
+
+    setPhotosState(next.photos);
+    setCellAssignments(next.cellAssignments);
+    setPhotoTransforms(next.photoTransforms);
+    const layout = ALL_LAYOUTS.find((l) => l.id === next.layoutId) || CLASSIC_LAYOUTS[0];
+    setSelectedLayoutState(layout);
+    setCanvasConfigState(next.canvasConfig);
+    setBackgroundConfigState(next.backgroundConfig);
+    setTextElements(next.textElements);
+    setStickerElements(next.stickerElements);
+    setFrameConfigState(next.frameConfig);
+
+    setCanRedo(redoRef.current.length > 0);
+  }, [getCurrentSnapshot]);
 
   const setPhotos = useCallback(
     (newPhotos: PhotoItem[]) => {
-      pushSnapshot();
+      // If setting initial photos from picker, set baseline and clear undo/redo
+      if (photos.length === 0) {
+        historyRef.current = [];
+        redoRef.current = [];
+        setCanUndo(false);
+        setCanRedo(false);
+      } else {
+        pushSnapshot();
+      }
+
       setPhotosState(newPhotos);
 
       // Auto assign photos to cells of current layout
@@ -194,7 +259,7 @@ export const CollageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setCellAssignments(newAssignments);
       setPhotoTransforms(newTransforms);
     },
-    [pushSnapshot, selectedLayout.cells, photoTransforms]
+    [pushSnapshot, selectedLayout.cells, photoTransforms, photos.length]
   );
 
   const addPhoto = useCallback(
@@ -410,12 +475,42 @@ export const CollageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setActiveCellId(null);
   }, []);
 
+  // Load saved uploaded photos from IndexedDB on startup
+  useEffect(() => {
+    getUploadedPhotos().then((stored) => {
+      if (stored && stored.length > 0) {
+        setUploadedPhotos(stored);
+      }
+    });
+  }, []);
+
   const addUploadedPhotos = useCallback((items: PhotoItem[]) => {
     setUploadedPhotos((prev) => {
       const existingIds = new Set(prev.map((p) => p.id));
       const newItems = items.filter((p) => !existingIds.has(p.id));
       return [...newItems, ...prev];
     });
+
+    // Save each newly uploaded photo permanently to IndexedDB
+    items.forEach(async (item) => {
+      try {
+        const base64 = await urlToBase64(item.url);
+        await saveUploadedPhoto({
+          id: item.id,
+          name: item.name,
+          dataUrl: base64,
+          width: item.width,
+          height: item.height,
+        });
+      } catch (err) {
+        console.error('Failed to save uploaded photo to IndexedDB:', err);
+      }
+    });
+  }, []);
+
+  const deleteUploadedPhotoById = useCallback(async (id: string) => {
+    setUploadedPhotos((prev) => prev.filter((p) => p.id !== id));
+    await deleteUploadedPhoto(id);
   }, []);
 
   return (
@@ -424,6 +519,7 @@ export const CollageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         photos,
         uploadedPhotos,
         addUploadedPhotos,
+        deleteUploadedPhotoById,
         selectedLayout,
         customCells,
         setCustomCells,
@@ -437,6 +533,7 @@ export const CollageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         activeTab,
         activeCellId,
         canUndo,
+        canRedo,
         setPhotos,
         addPhoto,
         setLayout,
@@ -457,6 +554,7 @@ export const CollageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         deleteStickerElement,
         setFrameConfig,
         undo,
+        redo,
         loadProject,
         resetCollage,
       }}
