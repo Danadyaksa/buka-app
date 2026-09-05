@@ -220,34 +220,50 @@ export async function renderCollageToBlob(
       ctx.translate(cx, cy);
 
       const rotate = transform?.rotate || 0;
-      if (rotate) ctx.rotate((rotate * Math.PI) / 180);
-
       const flipH = transform?.flipH || false;
-      if (flipH) ctx.scale(-1, 1);
-
       const scale = transform?.scale || 1;
-      const panX = ((transform?.panX || 0) / 100) * cellW;
-      const panY = ((transform?.panY || 0) / 100) * cellH;
+      const panX = transform?.panX || 0;
+      const panY = transform?.panY || 0;
 
-      ctx.translate(panX, panY);
+      const isRotated90 = rotate % 180 !== 0;
+      const rawImgAspect = img.width / img.height;
+      const effectiveImgAspect = isRotated90 ? (1 / rawImgAspect) : rawImgAspect;
+      const cellAspect = cellW / cellH;
+
+      let baseW = cellW;
+      let baseH = cellH;
+      if (effectiveImgAspect >= cellAspect) {
+        baseH = cellH;
+        baseW = cellH * effectiveImgAspect;
+      } else {
+        baseW = cellW;
+        baseH = cellW / effectiveImgAspect;
+      }
+
+      const drawW = baseW * scale;
+      const drawH = baseH * scale;
+
+      const maxPanX = Math.max(0, (drawW - cellW) / 2);
+      const maxPanY = Math.max(0, (drawH - cellH) / 2);
+
+      const tx = (panX / 100) * maxPanX;
+      const ty = (panY / 100) * maxPanY;
+
+      ctx.translate(tx, ty);
+
+      if (rotate) ctx.rotate((rotate * Math.PI) / 180);
+      if (flipH) ctx.scale(-1, 1);
 
       if (transform?.filter && transform.filter !== 'none') {
         ctx.filter = getFilterStyle(transform.filter);
       }
 
-      // Scale to cover cell
-      const imgAspect = img.width / img.height;
-      const cellAspect = cellW / cellH;
-      let drawW = cellW * scale;
-      let drawH = cellH * scale;
-
-      if (imgAspect > cellAspect) {
-        drawW = cellH * imgAspect * scale;
+      if (isRotated90) {
+        ctx.drawImage(img, -drawH / 2, -drawW / 2, drawH, drawW);
       } else {
-        drawH = (cellW / imgAspect) * scale;
+        ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
       }
 
-      ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
       ctx.restore();
     } else {
       // Empty cell placeholder

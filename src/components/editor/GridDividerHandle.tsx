@@ -66,17 +66,19 @@ export const GridDividerHandle: React.FC<GridDividerHandleProps> = ({
         left: `${position.x}%`,
         top: `${position.y}%`,
         transform: 'translate(-50%, -50%)',
+        willChange: 'left, top',
       }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
-      className="z-20 cursor-grab active:cursor-grabbing touch-none select-none p-1"
+      onPointerCancel={handlePointerUp}
+      className="z-30 cursor-grab active:cursor-grabbing touch-none select-none p-2.5 -m-2.5"
       title="Drag to resize grid"
     >
-      <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white text-[#ff2b6d] border border-neutral-200/90 shadow-lg shadow-black/15 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform">
-        {type === 'horizontal' && <ChevronsUpDown className="w-3.5 h-3.5 stroke-[2.5]" />}
-        {type === 'vertical' && <ChevronsLeftRight className="w-3.5 h-3.5 stroke-[2.5]" />}
-        {type === 'both' && <Move className="w-3.5 h-3.5 stroke-[2.5]" />}
+      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white text-[#ff2b6d] border border-neutral-300 shadow-md shadow-black/20 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform pointer-events-none">
+        {type === 'horizontal' && <ChevronsUpDown className="w-4 h-4 stroke-[2.5]" />}
+        {type === 'vertical' && <ChevronsLeftRight className="w-4 h-4 stroke-[2.5]" />}
+        {type === 'both' && <Move className="w-4 h-4 stroke-[2.5]" />}
       </div>
     </div>
   );

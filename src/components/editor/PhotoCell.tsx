@@ -58,10 +58,17 @@ export const PhotoCell: React.FC<PhotoCellProps> = ({
   const { updatePhotoTransform, replaceCellPhoto } = useCollage();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const gestureContainerRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
 
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [naturalAR, setNaturalAR] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (imgRef.current && imgRef.current.naturalWidth && imgRef.current.naturalHeight) {
+      setNaturalAR(imgRef.current.naturalWidth / imgRef.current.naturalHeight);
+    }
+  }, [photo?.url]);
 
   // Fallback defaults from props
   const panX = transform?.panX ?? 0;
@@ -78,90 +85,78 @@ export const PhotoCell: React.FC<PhotoCellProps> = ({
     panY,
   });
 
+  // Cell effective dimensions
+  const effectiveW = Math.max(1, cellW - innerMarginPx);
+  const effectiveH = Math.max(1, cellH - innerMarginPx);
+  const cellAR = effectiveW / effectiveH;
+
+  const isRotated90 = (rotate || 0) % 180 !== 0;
+  const rawAR = naturalAR || (photo?.width && photo?.height ? photo.width / photo.height : 1);
+  const photoAR = isRotated90 ? 1 / rawAR : rawAR;
+
+  // Base dimensions to COVER the cell without zoom (scale = 1)
+  let baseW = effectiveW;
+  let baseH = effectiveH;
+  if (photoAR >= cellAR) {
+    baseH = effectiveH;
+    baseW = effectiveH * photoAR;
+  } else {
+    baseW = effectiveW;
+    baseH = effectiveW / photoAR;
+  }
+
+  const drawW = baseW * scale;
+  const drawH = baseH * scale;
+
+  // Maximum allowable translation in pixels from center
+  const maxPanX = Math.max(0, (drawW - effectiveW) / 2);
+  const maxPanY = Math.max(0, (drawH - effectiveH) / 2);
+
+  const tx = (panX / 100) * maxPanX;
+  const ty = (panY / 100) * maxPanY;
+
   // Keep ref in sync when props change outside gestures
   useEffect(() => {
     currentTransform.current = { scale, panX, panY };
-    applyTransformStyle(scale, panX, panY);
-  }, [scale, panX, panY, rotate, flipH]);
+    if (wrapperRef.current) {
+      wrapperRef.current.style.transform = `translate(-50%, -50%) translate(${tx}px, ${ty}px)`;
+    }
+  }, [scale, panX, panY, tx, ty]);
 
-  const applyTransformStyle = useCallback(
-    (s: number, px: number, py: number) => {
-      if (!imgRef.current) return;
-      imgRef.current.style.transform = `
-        translate(${px}%, ${py}%)
-        scale(${s})
-        rotate(${rotate}deg)
-        ${flipH ? 'scaleX(-1)' : ''}
-      `;
-    },
-    [rotate, flipH]
-  );
-
-  // Calculate pan constraints based on photo aspect ratio & scale so whitespace never shows
-  const calculateMaxPan = useCallback(
-    (currentScale: number) => {
-      const effectiveW = Math.max(1, cellW - innerMarginPx);
-      const effectiveH = Math.max(1, cellH - innerMarginPx);
-      const cellAR = effectiveW / effectiveH;
-
-      const isRotated90 = rotate === 90 || rotate === 270;
-      let rawImgAR = naturalAR || (photo?.width && photo?.height ? photo.width / photo.height : 1);
-      if (isRotated90 && rawImgAR > 0) {
-        rawImgAR = 1 / rawImgAR;
-      }
-
-      let baseW = effectiveW;
-      let baseH = effectiveH;
-      if (rawImgAR > cellAR) {
-        baseW = effectiveH * rawImgAR;
-      } else {
-        baseH = effectiveW / rawImgAR;
-      }
-
-      const drawW = baseW * currentScale;
-      const drawH = baseH * currentScale;
-
-      // Max allowable translation in pixels from center
-      const maxPx = Math.max(0, (drawW - effectiveW) / 2);
-      const maxPy = Math.max(0, (drawH - effectiveH) / 2);
-
-      const maxPanXPercent = (maxPx / effectiveW) * 100;
-      const maxPanYPercent = (maxPy / effectiveH) * 100;
-
-      return { maxPanXPercent, maxPanYPercent, effectiveW, effectiveH };
-    },
-    [cellW, cellH, innerMarginPx, naturalAR, photo?.width, photo?.height, rotate]
-  );
-
-  const applyPan = useCallback(
+  // Gestures calculate pan directly in pixels from touch/mouse delta
+  const applyPanDelta = useCallback(
     (
       deltaScreenX: number,
       deltaScreenY: number,
-      startPan: { x: number; y: number },
+      startTx: number,
+      startTy: number,
       currentScale: number
     ) => {
-      const { maxPanXPercent, maxPanYPercent, effectiveW, effectiveH } =
-        calculateMaxPan(currentScale);
+      const currentDrawW = baseW * currentScale;
+      const currentDrawH = baseH * currentScale;
 
-      const deltaPercentX = (deltaScreenX / effectiveW) * 100;
-      const deltaPercentY = (deltaScreenY / effectiveH) * 100;
+      const currentMaxX = Math.max(0, (currentDrawW - effectiveW) / 2);
+      const currentMaxY = Math.max(0, (currentDrawH - effectiveH) / 2);
 
-      let targetPanX = startPan.x + deltaPercentX;
-      let targetPanY = startPan.y + deltaPercentY;
+      const targetTx = Math.max(-currentMaxX, Math.min(currentMaxX, startTx + deltaScreenX));
+      const targetTy = Math.max(-currentMaxY, Math.min(currentMaxY, startTy + deltaScreenY));
 
-      // Clamp so image always covers cell with 0 whitespace
-      targetPanX = Math.max(-maxPanXPercent, Math.min(maxPanXPercent, targetPanX));
-      targetPanY = Math.max(-maxPanYPercent, Math.min(maxPanYPercent, targetPanY));
+      const newPanX = currentMaxX > 0 ? (targetTx / currentMaxX) * 100 : 0;
+      const newPanY = currentMaxY > 0 ? (targetTy / currentMaxY) * 100 : 0;
 
       currentTransform.current = {
         scale: currentScale,
-        panX: targetPanX,
-        panY: targetPanY,
+        panX: newPanX,
+        panY: newPanY,
       };
 
-      applyTransformStyle(currentScale, targetPanX, targetPanY);
+      if (wrapperRef.current) {
+        wrapperRef.current.style.width = `${currentDrawW}px`;
+        wrapperRef.current.style.height = `${currentDrawH}px`;
+        wrapperRef.current.style.transform = `translate(-50%, -50%) translate(${targetTx}px, ${targetTy}px)`;
+      }
     },
-    [calculateMaxPan, applyTransformStyle]
+    [baseW, baseH, effectiveW, effectiveH]
   );
 
   const commitTransform = useCallback(() => {
@@ -181,18 +176,24 @@ export const PhotoCell: React.FC<PhotoCellProps> = ({
     let initialDist: number | null = null;
     let initialPinchScale = 1;
     let startCenter = { x: 0, y: 0 };
-    let startPan = { x: 0, y: 0 };
+    let startTx = 0;
+    let startTy = 0;
     let isPinching = false;
     let isPanning = false;
     let touchStartTime = 0;
 
     const touchStartHandler = (e: TouchEvent) => {
       touchStartTime = Date.now();
+      const curMaxX = Math.max(0, (baseW * currentTransform.current.scale - effectiveW) / 2);
+      const curMaxY = Math.max(0, (baseH * currentTransform.current.scale - effectiveH) / 2);
+
+      startTx = (currentTransform.current.panX / 100) * curMaxX;
+      startTy = (currentTransform.current.panY / 100) * curMaxY;
+
       if (e.touches.length === 1) {
         isPanning = true;
         isPinching = false;
         startCenter = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-        startPan = { x: currentTransform.current.panX, y: currentTransform.current.panY };
       } else if (e.touches.length === 2) {
         isPinching = true;
         isPanning = false;
@@ -204,19 +205,17 @@ export const PhotoCell: React.FC<PhotoCellProps> = ({
           x: (t1.clientX + t2.clientX) / 2,
           y: (t1.clientY + t2.clientY) / 2,
         };
-        startPan = { x: currentTransform.current.panX, y: currentTransform.current.panY };
       }
     };
 
     const touchMoveHandler = (e: TouchEvent) => {
-      // Crucial: non-passive e.preventDefault() prevents iOS Safari page rubber-banding / browser pinch zoom!
       if (e.cancelable) e.preventDefault();
 
       if (e.touches.length === 1 && isPanning) {
         const t = e.touches[0];
         const dx = t.clientX - startCenter.x;
         const dy = t.clientY - startCenter.y;
-        applyPan(dx, dy, startPan, currentTransform.current.scale);
+        applyPanDelta(dx, dy, startTx, startTy, currentTransform.current.scale);
       } else if (e.touches.length === 2 && isPinching && initialDist && initialDist > 0) {
         const t1 = e.touches[0];
         const t2 = e.touches[1];
@@ -231,14 +230,13 @@ export const PhotoCell: React.FC<PhotoCellProps> = ({
         const dx = currentCenter.x - startCenter.x;
         const dy = currentCenter.y - startCenter.y;
 
-        applyPan(dx, dy, startPan, newScale);
+        applyPanDelta(dx, dy, startTx, startTy, newScale);
       }
     };
 
     const touchEndHandler = (e: TouchEvent) => {
       if (e.touches.length === 0) {
         const elapsed = Date.now() - touchStartTime;
-        // Simple tap without movement selects the cell
         if (elapsed < 300 && !isPinching) {
           onSelect();
         }
@@ -250,7 +248,10 @@ export const PhotoCell: React.FC<PhotoCellProps> = ({
         isPinching = false;
         isPanning = true;
         startCenter = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-        startPan = { x: currentTransform.current.panX, y: currentTransform.current.panY };
+        const curMaxX = Math.max(0, (baseW * currentTransform.current.scale - effectiveW) / 2);
+        const curMaxY = Math.max(0, (baseH * currentTransform.current.scale - effectiveH) / 2);
+        startTx = (currentTransform.current.panX / 100) * curMaxX;
+        startTy = (currentTransform.current.panY / 100) * curMaxY;
       }
     };
 
@@ -265,7 +266,7 @@ export const PhotoCell: React.FC<PhotoCellProps> = ({
       el.removeEventListener('touchend', touchEndHandler);
       el.removeEventListener('touchcancel', touchEndHandler);
     };
-  }, [photo, applyPan, commitTransform, onSelect]);
+  }, [photo, applyPanDelta, commitTransform, onSelect, baseW, baseH, effectiveW, effectiveH]);
 
   // --- DESKTOP MOUSE DRAG & WHEEL ZOOM ---
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -275,12 +276,16 @@ export const PhotoCell: React.FC<PhotoCellProps> = ({
 
     const startX = e.clientX;
     const startY = e.clientY;
-    const startPan = { x: currentTransform.current.panX, y: currentTransform.current.panY };
+
+    const curMaxX = Math.max(0, (baseW * currentTransform.current.scale - effectiveW) / 2);
+    const curMaxY = Math.max(0, (baseH * currentTransform.current.scale - effectiveH) / 2);
+    const startTx = (currentTransform.current.panX / 100) * curMaxX;
+    const startTy = (currentTransform.current.panY / 100) * curMaxY;
 
     const handleMouseMove = (me: MouseEvent) => {
       const dx = me.clientX - startX;
       const dy = me.clientY - startY;
-      applyPan(dx, dy, startPan, currentTransform.current.scale);
+      applyPanDelta(dx, dy, startTx, startTy, currentTransform.current.scale);
     };
 
     const handleMouseUp = () => {
@@ -299,7 +304,13 @@ export const PhotoCell: React.FC<PhotoCellProps> = ({
     e.stopPropagation();
     const zoomDelta = -e.deltaY * 0.002;
     const newScale = Math.max(1, Math.min(4, currentTransform.current.scale + zoomDelta));
-    applyPan(0, 0, { x: currentTransform.current.panX, y: currentTransform.current.panY }, newScale);
+
+    const curMaxX = Math.max(0, (baseW * currentTransform.current.scale - effectiveW) / 2);
+    const curMaxY = Math.max(0, (baseH * currentTransform.current.scale - effectiveH) / 2);
+    const startTx = (currentTransform.current.panX / 100) * curMaxX;
+    const startTy = (currentTransform.current.panY / 100) * curMaxY;
+
+    applyPanDelta(0, 0, startTx, startTy, newScale);
     commitTransform();
   };
 
@@ -354,7 +365,7 @@ export const PhotoCell: React.FC<PhotoCellProps> = ({
         clipPath: cell.clipPath,
         boxSizing: 'border-box',
       }}
-      className="transition-all duration-75"
+      className="select-none"
     >
       <div
         draggable={!!photo}
@@ -379,25 +390,44 @@ export const PhotoCell: React.FC<PhotoCellProps> = ({
             ref={gestureContainerRef}
             onMouseDown={handleMouseDown}
             onWheel={handleWheel}
-            className="w-full h-full cursor-grab active:cursor-grabbing flex items-center justify-center overflow-hidden touch-none"
+            className="relative w-full h-full cursor-grab active:cursor-grabbing overflow-hidden touch-none"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              ref={imgRef}
-              src={photo.url}
-              alt={photo.name}
-              onLoad={(e) => {
-                if (e.currentTarget.naturalWidth && e.currentTarget.naturalHeight) {
-                  setNaturalAR(e.currentTarget.naturalWidth / e.currentTarget.naturalHeight);
-                }
-              }}
+            <div
+              ref={wrapperRef}
               style={{
-                filter: getFilterStyle(filter),
+                position: 'absolute',
+                left: '50%',
+                top: '50%',
+                width: `${drawW}px`,
+                height: `${drawH}px`,
+                transform: `translate(-50%, -50%) translate(${tx}px, ${ty}px)`,
                 transformOrigin: 'center center',
               }}
-              className="w-full h-full object-cover pointer-events-none will-change-transform"
-              draggable={false}
-            />
+              className="pointer-events-none flex items-center justify-center will-change-transform"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                ref={imgRef}
+                src={photo.url}
+                alt={photo.name}
+                onLoad={(e) => {
+                  if (e.currentTarget.naturalWidth && e.currentTarget.naturalHeight) {
+                    setNaturalAR(e.currentTarget.naturalWidth / e.currentTarget.naturalHeight);
+                  }
+                }}
+                style={{
+                  width: isRotated90 ? `${drawH}px` : '100%',
+                  height: isRotated90 ? `${drawW}px` : '100%',
+                  maxWidth: 'none',
+                  maxHeight: 'none',
+                  transform: `rotate(${rotate}deg) ${flipH ? 'scaleX(-1)' : ''}`,
+                  filter: getFilterStyle(filter),
+                  transformOrigin: 'center center',
+                }}
+                className="object-cover pointer-events-none select-none"
+                draggable={false}
+              />
+            </div>
           </div>
         ) : (
           <div
