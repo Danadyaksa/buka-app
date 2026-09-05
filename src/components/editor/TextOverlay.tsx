@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useRef } from 'react';
-import { Trash2, Edit3, RotateCw } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { X, Pencil, ArrowUpDown } from 'lucide-react';
 import { useCollage } from '@/context/CollageContext';
 import { TextOverlayItem } from '@/types/collage';
 
@@ -13,47 +13,161 @@ export const TextOverlay: React.FC<TextOverlayProps> = ({ onEditText }) => {
   const { textElements, updateTextElement, deleteTextElement } = useCollage();
   const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
 
-  const dragStart = useRef<{ x: number; y: number; itemX: number; itemY: number } | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const elementRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  const handlePointerDown = (e: React.PointerEvent, item: TextOverlayItem) => {
+  // Deselect when clicking outside or on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSelectedTextId(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    if (!selectedTextId) return;
+    const handleOutsideClick = (e: PointerEvent) => {
+      const activeElem = elementRefs.current[selectedTextId];
+      if (activeElem && !activeElem.contains(e.target as Node)) {
+        setSelectedTextId(null);
+      }
+    };
+    window.addEventListener('pointerdown', handleOutsideClick);
+    return () => window.removeEventListener('pointerdown', handleOutsideClick);
+  }, [selectedTextId]);
+
+  // --- 1. HANDLE MOVE (PAN TEXT) - BUTTER SMOOTH WITH RAF & CONTAINER RECT ---
+  const handleMovePointerDown = (
+    e: React.PointerEvent,
+    item: TextOverlayItem
+  ) => {
     e.stopPropagation();
     setSelectedTextId(item.id);
-    dragStart.current = {
-      x: e.clientX,
-      y: e.clientY,
-      itemX: item.x,
-      itemY: item.y,
+
+    if (!containerRef.current) return;
+    const containerRect = containerRef.current.getBoundingClientRect();
+    if (containerRect.width === 0 || containerRect.height === 0) return;
+
+    const startPointerX = e.clientX;
+    const startPointerY = e.clientY;
+    const startX = item.x;
+    const startY = item.y;
+
+    let latestX = startX;
+    let latestY = startY;
+    let rafId: number | null = null;
+
+    const onPointerMove = (moveEvt: PointerEvent) => {
+      moveEvt.preventDefault();
+      const dx = moveEvt.clientX - startPointerX;
+      const dy = moveEvt.clientY - startPointerY;
+
+      // Exact 1:1 pixel to percentage calculation based on actual canvas size
+      const dxPercent = (dx / containerRect.width) * 100;
+      const dyPercent = (dy / containerRect.height) * 100;
+
+      latestX = Math.max(0, Math.min(100, Math.round((startX + dxPercent) * 10) / 10));
+      latestY = Math.max(0, Math.min(100, Math.round((startY + dyPercent) * 10) / 10));
+
+      if (!rafId) {
+        rafId = requestAnimationFrame(() => {
+          updateTextElement(item.id, { x: latestX, y: latestY });
+          rafId = null;
+        });
+      }
     };
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+
+    const onPointerUp = () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      updateTextElement(item.id, { x: latestX, y: latestY });
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerUp);
+    };
+
+    window.addEventListener('pointermove', onPointerMove, { passive: false });
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', onPointerUp);
   };
 
-  const handlePointerMove = (e: React.PointerEvent, item: TextOverlayItem) => {
-    if (!dragStart.current || selectedTextId !== item.id) return;
-    const dx = e.clientX - dragStart.current.x;
-    const dy = e.clientY - dragStart.current.y;
+  // --- 2. HANDLE RESIZE & ROTATE (BOTTOM-RIGHT CORNER) ---
+  const handleResizeRotatePointerDown = (
+    e: React.PointerEvent,
+    item: TextOverlayItem
+  ) => {
+    e.stopPropagation();
+    e.preventDefault();
 
-    // Approximate delta to percentage (assuming ~400px canvas size)
-    const newX = Math.max(5, Math.min(95, dragStart.current.itemX + dx * 0.25));
-    const newY = Math.max(5, Math.min(95, dragStart.current.itemY + dy * 0.25));
+    const elem = elementRefs.current[item.id];
+    if (!elem) return;
 
-    updateTextElement(item.id, { x: newX, y: newY });
-  };
+    const rect = elem.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
 
-  const handlePointerUp = (e: React.PointerEvent) => {
-    dragStart.current = null;
-    try {
-      (e.target as HTMLElement).releasePointerCapture(e.pointerId);
-    } catch {
-      // ignore
-    }
+    const startPointerX = e.clientX;
+    const startPointerY = e.clientY;
+    const initialDist = Math.hypot(startPointerX - centerX, startPointerY - centerY);
+    const initialAngleRad = Math.atan2(startPointerY - centerY, startPointerX - centerX);
+    const initialAngleDeg = (initialAngleRad * 180) / Math.PI;
+
+    const startFontSize = item.fontSize;
+    const startRotation = item.rotation || 0;
+
+    let latestFontSize = startFontSize;
+    let latestRotation = startRotation;
+    let rafId: number | null = null;
+
+    const onPointerMove = (moveEvt: PointerEvent) => {
+      moveEvt.preventDefault();
+      const curDist = Math.hypot(moveEvt.clientX - centerX, moveEvt.clientY - centerY);
+      const curAngleRad = Math.atan2(moveEvt.clientY - centerY, moveEvt.clientX - centerX);
+      const curAngleDeg = (curAngleRad * 180) / Math.PI;
+
+      // Scale font size based on distance from center
+      const scale = curDist / (initialDist || 1);
+      latestFontSize = Math.max(12, Math.min(160, Math.round(startFontSize * scale)));
+
+      // Rotate based on angle around center
+      const deltaAngle = curAngleDeg - initialAngleDeg;
+      let newRot = Math.round(startRotation + deltaAngle);
+      newRot = ((newRot % 360) + 360) % 360;
+      latestRotation = newRot;
+
+      if (!rafId) {
+        rafId = requestAnimationFrame(() => {
+          updateTextElement(item.id, {
+            fontSize: latestFontSize,
+            rotation: latestRotation,
+          });
+          rafId = null;
+        });
+      }
+    };
+
+    const onPointerUp = () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      updateTextElement(item.id, {
+        fontSize: latestFontSize,
+        rotation: latestRotation,
+      });
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerUp);
+    };
+
+    window.addEventListener('pointermove', onPointerMove, { passive: false });
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', onPointerUp);
   };
 
   if (textElements.length === 0) return null;
 
   return (
     <div
-      onClick={() => setSelectedTextId(null)}
-      className="absolute inset-0 pointer-events-none z-20 overflow-hidden"
+      ref={containerRef}
+      className="absolute inset-0 z-30 pointer-events-none overflow-hidden select-none"
     >
       {textElements.map((item) => {
         const isSelected = selectedTextId === item.id;
@@ -61,9 +175,14 @@ export const TextOverlay: React.FC<TextOverlayProps> = ({ onEditText }) => {
         return (
           <div
             key={item.id}
-            onPointerDown={(e) => handlePointerDown(e, item)}
-            onPointerMove={(e) => handlePointerMove(e, item)}
-            onPointerUp={handlePointerUp}
+            ref={(el) => {
+              elementRefs.current[item.id] = el;
+            }}
+            onPointerDown={(e) => handleMovePointerDown(e, item)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedTextId(item.id);
+            }}
             onDoubleClick={(e) => {
               e.stopPropagation();
               onEditText?.(item);
@@ -77,74 +196,127 @@ export const TextOverlay: React.FC<TextOverlayProps> = ({ onEditText }) => {
               fontSize: `${item.fontSize}px`,
               color: item.color,
               letterSpacing: `${item.letterSpacing}px`,
-              lineHeight: item.lineHeight,
+              lineHeight: item.lineHeight || 1.2,
               textAlign: item.align,
             }}
-            className={`pointer-events-auto cursor-move select-none p-2 group transition-shadow ${
-              isSelected ? 'ring-2 ring-pink-500 rounded-lg bg-pink-500/10' : ''
-            }`}
+            className="pointer-events-auto cursor-move select-none inline-flex items-center justify-center touch-none transition-none"
           >
-            <span
-              style={{
-                backgroundColor:
-                  item.bgStyle === 'pill' || item.bgStyle === 'box'
-                    ? item.bgColor
-                    : 'transparent',
-                padding:
-                  item.bgStyle === 'pill'
-                    ? '4px 16px'
-                    : item.bgStyle === 'box'
-                    ? '4px 10px'
-                    : '0',
-                borderRadius:
-                  item.bgStyle === 'pill' ? '9999px' : item.bgStyle === 'box' ? '6px' : '0',
-              }}
-              className="inline-block whitespace-pre font-bold shadow-sm"
+            {/* Bounding Box Container */}
+            <div
+              className={`relative inline-flex items-center justify-center p-2.5 transition-all ${
+                isSelected ? 'rounded-xl' : ''
+              }`}
+              style={
+                isSelected
+                  ? {
+                      border: '2px dashed rgba(255, 255, 255, 0.95)',
+                      boxShadow: '0 0 0 1px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3)',
+                    }
+                  : undefined
+              }
             >
-              {item.text}
-            </span>
-
-            {/* Quick Action Floating Controls when selected */}
-            {isSelected && (
-              <div
-                onPointerDown={(e) => e.stopPropagation()}
-                className="absolute -top-10 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-neutral-900/90 backdrop-blur-md px-2 py-1 rounded-full shadow-lg border border-white/20 text-white z-30"
+              {/* Text Badge / Box Background */}
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textAlign: item.align,
+                  backgroundColor:
+                    item.bgStyle === 'pill' || item.bgStyle === 'box'
+                      ? item.bgColor
+                      : 'transparent',
+                  padding:
+                    item.bgStyle === 'pill'
+                      ? `${Math.round(item.fontSize * 0.35)}px ${Math.round(item.fontSize * 0.85)}px`
+                      : item.bgStyle === 'box'
+                      ? `${Math.round(item.fontSize * 0.25)}px ${Math.round(item.fontSize * 0.55)}px`
+                      : '0',
+                  borderRadius:
+                    item.bgStyle === 'pill' ? '9999px' : item.bgStyle === 'box' ? '10px' : '0',
+                  lineHeight: 1.2,
+                }}
+                className="font-bold select-none leading-none shadow-xs"
               >
-                <button
-                  type="button"
-                  onClick={() => onEditText?.(item)}
-                  className="p-1 hover:text-[#ff2b6d] transition-colors"
-                  title="Edit Text"
+                {/* Compensate for letterSpacing on the last character to guarantee exact centering */}
+                <span
+                  style={{
+                    display: 'inline-block',
+                    marginRight: item.letterSpacing ? `-${item.letterSpacing}px` : 0,
+                  }}
+                  className="whitespace-pre"
                 >
-                  <Edit3 className="w-3.5 h-3.5" />
-                </button>
+                  {item.text}
+                </span>
+              </span>
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    updateTextElement(item.id, {
-                      rotation: (item.rotation + 45) % 360,
-                    })
-                  }
-                  className="p-1 hover:text-[#ff2b6d] transition-colors"
-                  title="Rotate"
-                >
-                  <RotateCw className="w-3.5 h-3.5" />
-                </button>
+              {/* 3 iOS-Style Corner Control Handles (Matching User Screenshot 1) */}
+              {isSelected && (
+                <>
+                  {/* Top-Left: Red X Delete Button */}
+                  <button
+                    type="button"
+                    onPointerDown={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteTextElement(item.id);
+                      setSelectedTextId(null);
+                    }}
+                    className="absolute -top-3.5 -left-3.5 w-7 h-7 rounded-full bg-white shadow-md border border-neutral-200/90 flex items-center justify-center active:scale-95 transition-transform z-40 cursor-pointer hover:bg-red-50"
+                    title="Hapus Teks"
+                  >
+                    <X className="w-4 h-4 text-red-500 stroke-[3]" />
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={() => deleteTextElement(item.id)}
-                  className="p-1 hover:text-red-400 transition-colors"
-                  title="Delete"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            )}
+                  {/* Top-Right: Blue Pencil Edit Button */}
+                  <button
+                    type="button"
+                    onPointerDown={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEditText?.(item);
+                    }}
+                    className="absolute -top-3.5 -right-3.5 w-7 h-7 rounded-full bg-white shadow-md border border-neutral-200/90 flex items-center justify-center active:scale-95 transition-transform z-40 cursor-pointer hover:bg-blue-50"
+                    title="Edit Teks"
+                  >
+                    <Pencil className="w-3.5 h-3.5 text-blue-600 fill-blue-600/20 stroke-[2.5]" />
+                  </button>
+
+                  {/* Bottom-Right: Resize & Rotate Dual Handle */}
+                  <div
+                    onPointerDown={(e) => handleResizeRotatePointerDown(e, item)}
+                    className="absolute -bottom-3.5 -right-3.5 w-7 h-7 rounded-full bg-white shadow-md border border-neutral-200/90 flex items-center justify-center active:scale-110 transition-transform z-40 cursor-nwse-resize hover:bg-blue-50 touch-none"
+                    title="Ubah Ukuran & Putar Teks"
+                  >
+                    {/* Diagonal expand & rotate corner arrows icon */}
+                    <svg
+                      className="w-3.5 h-3.5 text-blue-600"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.7"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <polyline points="15 3 21 3 21 9" />
+                      <polyline points="9 21 3 21 3 15" />
+                      <line x1="21" y1="3" x2="14" y2="10" />
+                      <line x1="3" y1="21" x2="10" y2="14" />
+                    </svg>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         );
       })}
     </div>
   );
 };
+

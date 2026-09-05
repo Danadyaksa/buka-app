@@ -5,9 +5,13 @@ import { useCollage } from '@/context/CollageContext';
 import { PhotoCell } from '@/components/editor/PhotoCell';
 import { TextOverlay } from '@/components/editor/TextOverlay';
 import { GridDividerHandle } from '@/components/editor/GridDividerHandle';
-import { CellLayout } from '@/types/collage';
+import { CellLayout, TextOverlayItem } from '@/types/collage';
 
-export const CollageCanvas: React.FC = () => {
+interface CollageCanvasProps {
+  onEditText?: (item: TextOverlayItem) => void;
+}
+
+export const CollageCanvas: React.FC<CollageCanvasProps> = ({ onEditText }) => {
   const {
     selectedLayout,
     customCells,
@@ -506,7 +510,7 @@ export const CollageCanvas: React.FC = () => {
           )}
 
           {/* Text Overlays Layer */}
-          <TextOverlay />
+          <TextOverlay onEditText={onEditText} />
         </div>
       </div>
     </div>

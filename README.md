@@ -1,6 +1,6 @@
 <div align="center">
 
-# 📸 Buka app — Photo Collage Web App
+# 📸 BuKa - Buat Kolase — Photo Collage Web App
 
 **A sleek, responsive, and 100% client-side photo collage generator reverse-engineered from native iOS collage apps.**  
 *Free forever, zero paywalls, ultra-private (no server upload), and supports up to 4K high-resolution exports.*

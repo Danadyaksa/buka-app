@@ -55,18 +55,24 @@ export const TextEditorModal: React.FC<TextEditorModalProps> = ({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Auto-focus and auto-resize textarea
+  const adjustHeight = () => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  };
+
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.focus();
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.max(60, textareaRef.current.scrollHeight)}px`;
+      adjustHeight();
     }
-  }, []);
+  }, [fontSize, lineHeight, font, text]);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value);
     e.target.style.height = 'auto';
-    e.target.style.height = `${Math.max(60, e.target.scrollHeight)}px`;
+    e.target.style.height = `${e.target.scrollHeight}px`;
   };
 
   const handleConfirm = () => {
@@ -126,17 +132,22 @@ export const TextEditorModal: React.FC<TextEditorModalProps> = ({
           <div
             style={{
               backgroundColor: bgStyle === 'pill' || bgStyle === 'box' ? bgColor : 'transparent',
-              padding: bgStyle === 'pill' ? '8px 24px' : bgStyle === 'box' ? '8px 16px' : '4px',
+              padding:
+                bgStyle === 'pill'
+                  ? `${Math.round(fontSize * 0.35)}px ${Math.round(fontSize * 0.9)}px`
+                  : bgStyle === 'box'
+                  ? `${Math.round(fontSize * 0.25)}px ${Math.round(fontSize * 0.6)}px`
+                  : '4px',
               borderRadius: bgStyle === 'pill' ? '9999px' : bgStyle === 'box' ? '10px' : '0',
             }}
-            className="inline-block max-w-full font-bold shadow-sm"
+            className="inline-flex items-center justify-center max-w-full font-bold shadow-md transition-all duration-100"
           >
             <textarea
               ref={textareaRef}
               rows={1}
               value={text}
               onChange={handleTextChange}
-              placeholder="|"
+              placeholder="Ketik teks..."
               style={{
                 fontFamily: font,
                 fontSize: `${fontSize}px`,
@@ -145,8 +156,9 @@ export const TextEditorModal: React.FC<TextEditorModalProps> = ({
                 lineHeight: lineHeight,
                 textAlign: align,
                 caretColor: '#ffffff',
+                marginRight: letterSpacing ? `-${letterSpacing}px` : 0,
               }}
-              className="w-full max-w-full bg-transparent resize-none border-none outline-none overflow-hidden placeholder-white/70 font-bold focus:ring-0 p-0 block text-center"
+              className="w-full max-w-full bg-transparent resize-none border-none outline-none overflow-hidden placeholder-white/50 font-bold focus:ring-0 p-0 m-0 block text-center leading-none"
             />
           </div>
         </div>
@@ -238,12 +250,15 @@ export const TextEditorModal: React.FC<TextEditorModalProps> = ({
 
         {/* Sub-Panel Drawer (When Aa, Sliders, or Color is active) */}
         {activeSubTab !== 'keyboard' && (
-          <div className="bg-neutral-900/95 backdrop-blur-xl border-t border-white/10 flex flex-col shrink-0 animate-in slide-in-from-bottom-2 duration-150">
-            <div className="p-4 min-h-[150px] flex items-center justify-center">
-              {/* FONTS SELECTOR (Vertical Scroll List from video) */}
+          <div className="bg-neutral-900/95 backdrop-blur-xl border-t border-white/10 flex flex-col shrink-0 overflow-x-hidden animate-in slide-in-from-bottom-2 duration-150">
+            <div className="p-4 min-h-[150px] flex items-center justify-center overflow-x-hidden">
+              {/* FONTS SELECTOR (Strictly Vertical Scroll List from video, zero horizontal scroll) */}
               {activeSubTab === 'fonts' && (
-                <div className="w-full max-w-sm flex flex-col items-center">
-                  <div className="w-full h-56 overflow-y-auto no-scrollbar py-6 flex flex-col items-center gap-3 text-center scroll-smooth">
+                <div className="w-full max-w-sm flex flex-col items-center overflow-x-hidden">
+                  <div
+                    style={{ touchAction: 'pan-y' }}
+                    className="w-full h-56 overflow-y-auto overflow-x-hidden no-scrollbar py-6 flex flex-col items-center gap-3.5 text-center scroll-smooth touch-pan-y select-none"
+                  >
                     {FONTS.map((f) => {
                       const isSelected = font === f.family;
                       return (
@@ -252,9 +267,9 @@ export const TextEditorModal: React.FC<TextEditorModalProps> = ({
                           type="button"
                           onClick={() => setFont(f.family)}
                           style={{ fontFamily: f.family }}
-                          className={`w-full py-1.5 text-base sm:text-lg transition-all duration-150 ${
+                          className={`w-full py-1 text-base sm:text-lg transition-colors ${
                             isSelected
-                              ? 'text-[#ff7597] font-extrabold scale-110 tracking-wide'
+                              ? 'text-[#ff7597] font-black tracking-wide text-xl sm:text-2xl'
                               : 'text-neutral-400 hover:text-white font-normal'
                           }`}
                         >

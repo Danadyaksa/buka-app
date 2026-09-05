@@ -1,6 +1,6 @@
 {
-  "name": "Buka app",
-  "short_name": "Buka app",
+  "name": "BuKa - Buat Kolase",
+  "short_name": "BuKa",
   "description": "Create and customize high-resolution photo collages with classic & stylish layouts, text, and frames.",
   "start_url": "/",
   "display": "standalone",

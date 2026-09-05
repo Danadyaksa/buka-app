@@ -108,7 +108,12 @@ function MainApp() {
 
             {/* Canvas Area (Middle) */}
             <div className="flex-1 min-h-0 w-full relative overflow-hidden flex flex-col items-center justify-center">
-              <CollageCanvas />
+              <CollageCanvas
+                onEditText={(item) => {
+                  setEditingTextItem(item);
+                  setShowTextModal(true);
+                }}
+              />
               <CellToolbar />
             </div>
 

@@ -130,7 +130,7 @@ export const MediaPicker: React.FC<MediaPickerProps> = ({
           <div className="w-8 h-8 rounded-full bg-pink-50 flex items-center justify-center text-[#ff2b6d]">
             <Sparkles className="w-4 h-4" />
           </div>
-          <h1 className="text-base font-extrabold text-neutral-900 tracking-tight">Buka app</h1>
+          <h1 className="text-base font-extrabold text-neutral-900 tracking-tight">BuKa - Buat Kolase</h1>
         </div>
 
         <button

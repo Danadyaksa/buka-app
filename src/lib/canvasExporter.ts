@@ -297,8 +297,8 @@ export async function renderCollageToBlob(
     // Draw background highlight box
     if (item.bgStyle === 'pill' || item.bgStyle === 'box') {
       ctx.fillStyle = item.bgColor || '#ff2b6d';
-      const padX = (item.bgStyle === 'pill' ? 18 : 10) * scaleFactor;
-      const padY = 6 * scaleFactor;
+      const padX = (item.bgStyle === 'pill' ? 24 : 14) * scaleFactor;
+      const padY = (item.bgStyle === 'pill' ? 10 : 8) * scaleFactor;
       const boxW = textWidth + padX * 2;
       const boxH = textHeight + padY * 2;
       const radius = item.bgStyle === 'pill' ? boxH / 2 : 8 * scaleFactor;

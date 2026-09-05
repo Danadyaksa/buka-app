@@ -2,13 +2,13 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Buka app",
+  title: "Buka - Buat Kolase",
   description: "Create and customize high-resolution photo collages with classic & stylish layouts, text, and frames.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Buka app",
+    title: "BuKa - Buat Kolase",
   },
   icons: {
     icon: "/icon-192.png",
