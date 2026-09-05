@@ -6,8 +6,6 @@ import {
   Download,
   Share2,
   CheckCircle2,
-  Instagram,
-  Facebook,
   MessageCircle,
   Loader2,
 } from 'lucide-react';
@@ -214,7 +212,11 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ onBack }) => {
               className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-neutral-100 transition-colors"
             >
               <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 text-white flex items-center justify-center shadow-md">
-                <Instagram className="w-6 h-6" />
+                <svg className="w-6 h-6 fill-none stroke-current stroke-[2]" viewBox="0 0 24 24">
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+                </svg>
               </div>
               <span className="text-[11px] font-medium text-neutral-700">Story</span>
             </button>
@@ -226,7 +228,11 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ onBack }) => {
               className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-neutral-100 transition-colors"
             >
               <div className="w-12 h-12 rounded-full bg-pink-600 text-white flex items-center justify-center shadow-md">
-                <Instagram className="w-6 h-6" />
+                <svg className="w-6 h-6 fill-none stroke-current stroke-[2]" viewBox="0 0 24 24">
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+                </svg>
               </div>
               <span className="text-[11px] font-medium text-neutral-700">Post</span>
             </button>
@@ -238,7 +244,9 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ onBack }) => {
               className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-neutral-100 transition-colors"
             >
               <div className="w-12 h-12 rounded-full bg-[#1877f2] text-white flex items-center justify-center shadow-md">
-                <Facebook className="w-6 h-6" />
+                <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
+                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+                </svg>
               </div>
               <span className="text-[11px] font-medium text-neutral-700">Facebook</span>
             </button>
