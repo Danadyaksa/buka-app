@@ -9,7 +9,7 @@ import {
   Upload,
   Clock,
   Image as ImageIcon,
-  Sparkles,
+  FolderHeart,
 } from 'lucide-react';
 import { useCollage } from '@/context/CollageContext';
 import {
@@ -112,7 +112,7 @@ export const ProjectsModal: React.FC<ProjectsModalProps> = ({
         {/* Header */}
         <div className="px-6 py-4 border-b border-neutral-100 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-[#ff2b6d]" />
+            <FolderHeart className="w-5 h-5 text-[#ff2b6d]" />
             <h2 className="text-base font-bold text-neutral-900">Karya Saya (Riwayat Proyek)</h2>
           </div>
 

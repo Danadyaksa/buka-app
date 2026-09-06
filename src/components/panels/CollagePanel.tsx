@@ -7,7 +7,6 @@ import {
   Minimize2,
   BoxSelect,
   Layers,
-  Sparkles,
   Check,
 } from 'lucide-react';
 import { useCollage } from '@/context/CollageContext';
@@ -275,7 +274,10 @@ export const CollagePanel: React.FC = () => {
             controlMode === 'shadow' ? 'text-[#ff2b6d]' : 'text-neutral-500 hover:text-neutral-800'
           }`}
         >
-          <Sparkles className="w-5 h-5" />
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect width="13" height="13" x="3" y="3" rx="3" />
+            <path d="M7 20h10a3 3 0 0 0 3-3V7" strokeOpacity="0.45" strokeWidth="2.5" />
+          </svg>
           <span>Shadow</span>
         </button>
       </div>

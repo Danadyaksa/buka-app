@@ -3,7 +3,7 @@
 import React, { useRef, useState } from 'react';
 import {
   Image as ImageIcon,
-  Wand2,
+  SlidersHorizontal,
   FlipHorizontal,
   RotateCw,
   Trash2,
@@ -142,7 +142,7 @@ export const CellToolbar: React.FC = () => {
           }`}
           title="Photo Filters"
         >
-          <Wand2 className="w-5 h-5" />
+          <SlidersHorizontal className="w-5 h-5" />
           <span className="hidden sm:inline text-xs font-semibold">Filter</span>
         </button>
 

@@ -15,7 +15,7 @@
 
 ---
 
-## ✨ Fitur Unggulan
+## 📸 Fitur Unggulan
 
 ### 1. 📐 Pilihan Layout Kolase Beragam (Classic & Stylish)
 - **Tab CLASSIC:** Puluhan variasi layout grid standar untuk 1 hingga 9+ foto (split vertikal/horizontal, 3 baris/kolom, 2×2, 3×3, mosaik asimetris).

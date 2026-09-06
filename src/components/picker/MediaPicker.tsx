@@ -7,7 +7,7 @@ import {
   Check,
   Trash2,
   Clock,
-  Sparkles,
+  LayoutGrid,
   ArrowRight,
   Image as ImageIcon,
   Upload,
@@ -128,7 +128,7 @@ export const MediaPicker: React.FC<MediaPickerProps> = ({
       <header className="px-4 py-3 border-b border-neutral-100 flex items-center justify-between shrink-0 bg-white">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-pink-50 flex items-center justify-center text-[#ff2b6d]">
-            <Sparkles className="w-4 h-4" />
+            <LayoutGrid className="w-4 h-4 stroke-[2.2]" />
           </div>
           <h1 className="text-base font-extrabold text-neutral-900 tracking-tight">BuKa - Buat Kolase</h1>
         </div>

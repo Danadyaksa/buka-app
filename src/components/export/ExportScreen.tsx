@@ -6,7 +6,6 @@ import {
   Download,
   CheckCircle2,
   Loader2,
-  Sparkles,
   FileImage,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
